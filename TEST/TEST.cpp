@@ -4,6 +4,7 @@
 #include "framework.h"
 #include "TEST.h"
 #include "WindowClass.h"
+#include "Window.h"
 
 #define MAX_LOADSTRING 100
 
@@ -12,11 +13,62 @@ HINSTANCE hInst;                                // current instance
 WCHAR szTitle[MAX_LOADSTRING];                  // The title bar text
 WCHAR szWindowClass[MAX_LOADSTRING];            // the main window class name
 
-// Forward declarations of functions included in this code module:
-void                MyRegisterClass(HINSTANCE hInstance);
-BOOL                InitInstance(HINSTANCE, int);
 LRESULT CALLBACK    WndProc(HWND, UINT, WPARAM, LPARAM);
 INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
+
+
+struct TESTWindowClass
+{
+    static MoWin::WindowClassStyle Style() { return MoWin::WindowClassStyle(CS_HREDRAW | CS_VREDRAW); }
+    static int ExtraClassBytes() { return 0; }
+    static int ExtraWindowBytes() { return 0; }
+    static HICON Icon(HINSTANCE instance) { return LoadIcon(instance, MAKEINTRESOURCE(IDI_TEST)); }
+    static HCURSOR Cursor(HINSTANCE instance) { return LoadCursor(nullptr, IDC_ARROW); }
+    static HBRUSH BackgroundBrush() { return (HBRUSH)(COLOR_WINDOW + 1); }
+    static LPCWSTR ClassName() { return szWindowClass; }
+    static LPCWSTR MenuName() { return MAKEINTRESOURCEW(IDC_TEST); }
+    static HICON SmallIcon(HINSTANCE instance) { return LoadIcon(instance, MAKEINTRESOURCE(IDI_SMALL)); }
+
+    static LRESULT Procedure(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+    {
+        switch(message)
+        {
+        case WM_COMMAND:
+        {
+            int wmId = LOWORD(wParam);
+            // Parse the menu selections:
+            switch(wmId)
+            {
+            case IDM_ABOUT:
+                DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
+                break;
+            case IDM_EXIT:
+                DestroyWindow(hWnd);
+                break;
+            default:
+                return DefWindowProc(hWnd, message, wParam, lParam);
+            }
+        }
+        break;
+        case WM_PAINT:
+        {
+            PAINTSTRUCT ps;
+            HDC hdc = BeginPaint(hWnd, &ps);
+            // TODO: Add any drawing code that uses hdc here...
+            EndPaint(hWnd, &ps);
+        }
+        break;
+        case WM_DESTROY:
+            PostQuitMessage(0);
+            break;
+        default:
+            return DefWindowProc(hWnd, message, wParam, lParam);
+        }
+        return 0;
+    }
+};
+
+static_assert(MoWin::IsStaticWindowClassW<TESTWindowClass>);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -31,13 +83,22 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     // Initialize global strings
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
     LoadStringW(hInstance, IDC_TEST, szWindowClass, MAX_LOADSTRING);
-    MyRegisterClass(hInstance);
+    //MyRegisterClass(hInstance);
 
-    // Perform application initialization:
-    if (!InitInstance (hInstance, nCmdShow))
+
+    hInst = hInstance; // Store instance handle in our global variable
+
+    MoWin::StaticWindowClassTraits<TESTWindowClass>::Register(hInstance);
+    MoWin::Window window({}, TESTWindowClass::ClassName(), szTitle, MoWin::WindowStyle(WS_OVERLAPPEDWINDOW | WS_VISIBLE),
+       CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
+
+    if(!window)
     {
         return FALSE;
     }
+
+    ShowWindow(window, nCmdShow);
+    UpdateWindow(window);
 
     HACCEL hAccelTable = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDC_TEST));
 
@@ -54,64 +115,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     }
 
     return (int) msg.wParam;
-}
-
-
-
-//
-//  FUNCTION: MyRegisterClass()
-//
-//  PURPOSE: Registers the window class.
-//
-void MyRegisterClass(HINSTANCE hInstance)
-{
-    WNDCLASSEXW wcex;
-
-    wcex.cbSize = sizeof(WNDCLASSEX);
-
-    wcex.style          = CS_HREDRAW | CS_VREDRAW;
-    wcex.lpfnWndProc    = WndProc;
-    wcex.cbClsExtra     = 0;
-    wcex.cbWndExtra     = 0;
-    wcex.hInstance      = hInstance;
-    wcex.hIcon          = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_TEST));
-    wcex.hCursor        = LoadCursor(nullptr, IDC_ARROW);
-    wcex.hbrBackground  = (HBRUSH)(COLOR_WINDOW+1);
-    wcex.lpszMenuName   = MAKEINTRESOURCEW(IDC_TEST);
-    wcex.lpszClassName  = szWindowClass;
-    wcex.hIconSm        = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
-
-    static MoWin::WindowClassExW classEx(wcex);
-
-    //return classEx.GetAtom();
-}
-
-//
-//   FUNCTION: InitInstance(HINSTANCE, int)
-//
-//   PURPOSE: Saves instance handle and creates main window
-//
-//   COMMENTS:
-//
-//        In this function, we save the instance handle in a global variable and
-//        create and display the main program window.
-//
-BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
-{
-   hInst = hInstance; // Store instance handle in our global variable
-
-   HWND hWnd = CreateWindowW(szWindowClass, szTitle, WS_OVERLAPPEDWINDOW,
-      CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
-
-   if (!hWnd)
-   {
-      return FALSE;
-   }
-
-   ShowWindow(hWnd, nCmdShow);
-   UpdateWindow(hWnd);
-
-   return TRUE;
 }
 
 //
