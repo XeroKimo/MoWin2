@@ -1,14 +1,16 @@
-#pragma once
+module;
 
 #include <Windows.h>
 #include <concepts>
 #include <atomic>
 #include <memory>
 
-namespace MoWin
+export module Window;
+
+export namespace MoWin
 {
     enum class WindowClassAtom : ATOM {};
-
+        
     //https://docs.microsoft.com/en-us/windows/win32/winmsg/window-styles
     enum class WindowStyle : DWORD
     {
@@ -260,7 +262,7 @@ namespace MoWin
     };
 
     template<class Ty>
-    concept HasStaticProcedure = requires (Ty * self, Event event)
+    concept HasStaticProcedure = requires (Ty* self, Event event)
     {
         { Ty::Procedure(self, event) } -> std::same_as<LRESULT>;
     };
@@ -336,25 +338,25 @@ namespace MoWin
     };
 
     template<class Ty>
-    concept FullWindowClassA = IsWindowClassA<Ty> &&
+    concept FullWindowClassA = IsWindowClassA<Ty> && 
         StyleDefined<Ty> &&
         ExtraClassBytesDefined<Ty> &&
         ExtraWindowBytesDefined<Ty> &&
         IconDefined<Ty> &&
         CursorDefined<Ty> &&
         BackgroundBrushDefined<Ty> &&
-        MenuDefined<Ty, LPCSTR> &&
+        MenuDefined<Ty, LPCSTR> && 
         SmallIconDefined<Ty>;
 
     template<class Ty>
-    concept FullWindowClassW = IsWindowClassW<Ty> &&
+    concept FullWindowClassW = IsWindowClassW<Ty> && 
         StyleDefined<Ty> &&
         ExtraClassBytesDefined<Ty> &&
         ExtraWindowBytesDefined<Ty> &&
         IconDefined<Ty> &&
         CursorDefined<Ty> &&
         BackgroundBrushDefined<Ty> &&
-        MenuDefined<Ty, LPCWSTR> &&
+        MenuDefined<Ty, LPCWSTR> && 
         SmallIconDefined<Ty>;
 
     template<class CharTy>
@@ -498,7 +500,7 @@ namespace MoWin
             if(count == 0)
                 return;
 
-            count = --m_registeredCount;
+            count = m_registeredCount--;
 
             if(count == 0)
                 raw_traits::Unregister(Ty::ClassName(), m_instance);
@@ -608,7 +610,7 @@ namespace MoWin
         template<class... Params>
         Window(WindowStyleEx extendedStyle, string_type windowName, WindowStyle style, int x, int y, int width, int height, HWND optionalParent, HMENU menu, HINSTANCE hInstance, Params&&... params) :
             m_windowHandle(CreateHandle(extendedStyle, windowName, style, x, y, width, height, optionalParent, menu, hInstance)),
-            m_data(std::make_unique<Ty>(std::forward<Params>(params)...))
+            m_data(std::make_unique<Ty>(m_windowHandle, std::forward<Params>(params)...))
         {
             SetWindowLongPtrW(m_windowHandle, GWLP_USERDATA, std::bit_cast<LONG_PTR>(m_data.get()));
         }

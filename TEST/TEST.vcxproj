@@ -170,6 +170,11 @@
     <Image Include="small.ico" />
     <Image Include="TEST.ico" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MoWin\MoWin.vcxproj">
+      <Project>{53c53871-c461-4271-9e64-bb0b4d9f1b4a}</Project>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

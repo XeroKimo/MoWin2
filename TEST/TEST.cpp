@@ -3,8 +3,10 @@
 
 #include "framework.h"
 #include "TEST.h"
-#include "WindowClass.h"
-#include "Window.h"
+//#include "WindowClass.h"
+//#include "Window.h"
+
+import Window;
 
 #define MAX_LOADSTRING 100
 
@@ -29,46 +31,48 @@ struct TESTWindowClass
     static LPCWSTR MenuName() { return MAKEINTRESOURCEW(IDC_TEST); }
     static HICON SmallIcon(HINSTANCE instance) { return LoadIcon(instance, MAKEINTRESOURCE(IDI_SMALL)); }
 
-    static LRESULT Procedure(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
+    TESTWindowClass(HWND hwnd) {}
+
+    LRESULT Procedure(MoWin::Event event)
     {
-        switch(message)
+        switch(static_cast<UINT>(event.type))
         {
         case WM_COMMAND:
         {
-            int wmId = LOWORD(wParam);
+            int wmId = LOWORD(event.wParam);
             // Parse the menu selections:
             switch(wmId)
             {
             case IDM_ABOUT:
-                DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), hWnd, About);
+                DialogBox(hInst, MAKEINTRESOURCE(IDD_ABOUTBOX), event.window, About);
                 break;
             case IDM_EXIT:
-                DestroyWindow(hWnd);
+                DestroyWindow(event.window);
                 break;
             default:
-                return DefWindowProc(hWnd, message, wParam, lParam);
+                return DefWindowProc(event.window, static_cast<UINT>(event.type), event.wParam, event.lParam);
             }
         }
         break;
         case WM_PAINT:
         {
             PAINTSTRUCT ps;
-            HDC hdc = BeginPaint(hWnd, &ps);
+            HDC hdc = BeginPaint(event.window, &ps);
             // TODO: Add any drawing code that uses hdc here...
-            EndPaint(hWnd, &ps);
+            EndPaint(event.window, &ps);
         }
         break;
         case WM_DESTROY:
             PostQuitMessage(0);
             break;
         default:
-            return DefWindowProc(hWnd, message, wParam, lParam);
+            return DefWindowProc(event.window, static_cast<UINT>(event.type), event.wParam, event.lParam);
         }
         return 0;
     }
 };
 
-static_assert(MoWin::IsStaticWindowClassW<TESTWindowClass>);
+//static_assert(MoWin::IsStaticWindowClassW<TESTWindowClass>);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,
@@ -88,9 +92,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
 
     hInst = hInstance; // Store instance handle in our global variable
 
-    MoWin::StaticWindowClassTraits<TESTWindowClass>::Register(hInstance);
-    MoWin::Window window({}, TESTWindowClass::ClassName(), szTitle, MoWin::WindowStyle(WS_OVERLAPPEDWINDOW | WS_VISIBLE),
-       CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance, nullptr);
+    //MoWin::StaticWindowClassTraits<TESTWindowClass>::Register(hInstance);
+    MoWin::Window<TESTWindowClass> window(szTitle, MoWin::WindowStyle(WS_OVERLAPPEDWINDOW | WS_VISIBLE),
+       CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance);
 
     if(!window)
     {

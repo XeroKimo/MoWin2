@@ -163,6 +163,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Window.ixx" />
+  </ItemGroup>
+  <ItemGroup>
     <ClInclude Include="Source\Window.h" />
     <ClInclude Include="Source\WindowClass.h" />
   </ItemGroup>
