@@ -18,11 +18,20 @@
     <ClCompile Include="Source\Window.ixx">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\WindowCommon.ixx">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Win64\Unicode.ixx">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Win64\Win64.ixx">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Win64\Common.ixx">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Source\Window.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Source\WindowClass.h">
       <Filter>Header Files</Filter>
     </ClInclude>

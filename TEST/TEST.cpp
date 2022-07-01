@@ -3,10 +3,11 @@
 
 #include "framework.h"
 #include "TEST.h"
+#include <bit>
 //#include "WindowClass.h"
 //#include "Window.h"
 
-import Window;
+import MoWin.Window;
 
 #define MAX_LOADSTRING 100
 
@@ -35,6 +36,7 @@ struct TESTWindowClass
 
     LRESULT Procedure(MoWin::Event event)
     {
+
         switch(static_cast<UINT>(event.type))
         {
         case WM_COMMAND:

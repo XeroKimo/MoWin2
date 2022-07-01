@@ -506,7 +506,12 @@ namespace MoWin
 
         static LRESULT Procedure(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
-
+            if(uMsg == WM_CREATE)
+            {
+                m_registeredCount++;
+                LPCREATESTRUCTW createStruct = std::bit_cast<LPCREATESTRUCTW>(lParam);
+                SetWindowLongPtrW(hwnd, GWLP_USERDATA, std::bit_cast<LONG_PTR>(createStruct->lpCreateParams));
+            }
             if(uMsg == WM_DESTROY)
             {
                 Unregister();
@@ -602,15 +607,15 @@ namespace MoWin
 
     private:
         HWND m_windowHandle;
-        std::unique_ptr<Ty> m_data;
+        Ty m_data;
 
     public:
         template<class... Params>
         Window(WindowStyleEx extendedStyle, string_type windowName, WindowStyle style, int x, int y, int width, int height, HWND optionalParent, HMENU menu, HINSTANCE hInstance, Params&&... params) :
             m_windowHandle(CreateHandle(extendedStyle, windowName, style, x, y, width, height, optionalParent, menu, hInstance)),
-            m_data(std::make_unique<Ty>(std::forward<Params>(params)...))
+            m_data(m_windowHandle, std::forward<Params>(params)...)
         {
-            SetWindowLongPtrW(m_windowHandle, GWLP_USERDATA, std::bit_cast<LONG_PTR>(m_data.get()));
+            //SetWindowLongPtrW(m_windowHandle, GWLP_USERDATA, std::bit_cast<LONG_PTR>(m_data.get()));
         }
 
         template<class... Params>
@@ -631,7 +636,7 @@ namespace MoWin
                 //Throw
             }
 
-            return window_traits::Create(extendedStyle, Ty::ClassName(), windowName, style, x, y, width, height, optionalParent, menu, hInstance, nullptr);
+            return window_traits::Create(extendedStyle, Ty::ClassName(), windowName, style, x, y, width, height, optionalParent, menu, hInstance, &m_data);
         }
     };
 }
