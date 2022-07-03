@@ -11,6 +11,25 @@ export module MoWin.Window:Common;
 #undef RegisterClass
 #undef UnregisterClass
 #undef CreateWindow
+
+namespace MoWin
+{
+    enum class Platform
+    {
+        Win32,
+        Win64
+    };
+
+    enum class CharacterSet
+    {
+        MBCS,
+        Unicode
+    };
+
+    export template<Platform P, CharacterSet C>
+    struct PlatformTraits;
+};
+
 export namespace MoWin
 {
     enum class WindowClassAtom : ATOM {};
@@ -91,21 +110,6 @@ export namespace MoWin
         { self.Procedure(event) } -> std::same_as<LRESULT>;
     };
 
-    //template<class Ty>
-    //concept IsWindowClassA = requires
-    //{
-    //    { Ty::ClassName() } -> std::same_as<LPCSTR>;
-    //} && (HasStaticProcedure<Ty> || HasObjectProcedure<Ty>);
-
-    //template<class Ty>
-    //concept IsWindowClassW = requires
-    //{
-    //    { Ty::ClassName() } -> std::same_as<LPCWSTR>;
-    //} && (HasStaticProcedure<Ty> || HasObjectProcedure<Ty>);
-
-    //template<class Ty>
-    //concept IsWindowClass = IsWindowClassA<Ty> || IsWindowClassW<Ty>;
-
     template<class Ty>
     concept StyleDefined = requires()
     {
@@ -154,33 +158,7 @@ export namespace MoWin
         { Ty::SmallIcon(instance) } -> std::same_as<HICON>;
     };
 
-    //template<class Ty>
-    //concept FullWindowClassA = IsWindowClassA<Ty> && 
-    //    StyleDefined<Ty> &&
-    //    ExtraClassBytesDefined<Ty> &&
-    //    ExtraWindowBytesDefined<Ty> &&
-    //    IconDefined<Ty> &&
-    //    CursorDefined<Ty> &&
-    //    BackgroundBrushDefined<Ty> &&
-    //    MenuDefined<Ty, LPCSTR> && 
-    //    SmallIconDefined<Ty>;
-
-    //template<class Ty>
-    //concept FullWindowClassW = IsWindowClassW<Ty> && 
-    //    StyleDefined<Ty> &&
-    //    ExtraClassBytesDefined<Ty> &&
-    //    ExtraWindowBytesDefined<Ty> &&
-    //    IconDefined<Ty> &&
-    //    CursorDefined<Ty> &&
-    //    BackgroundBrushDefined<Ty> &&
-    //    MenuDefined<Ty, LPCWSTR> && 
-    //    SmallIconDefined<Ty>;
-
-
-    template<class CharTy>
-    struct WindowTraits;
-
-    template<class CharTy>
+    template<Platform P, CharacterSet C>
     struct DefaultClass;
 
     struct DefaultClassCommon
@@ -270,7 +248,7 @@ export namespace MoWin
             else
                 windowClass.hIconSm = DefaultClass<string_type>::SmallIcon(m_instance);
 
-            if(raw_traits::Register(windowClass) == WindowClassAtom(0))
+            if(raw_traits::RegisterClass(windowClass) == WindowClassAtom(0))
             {
                 //Throw
             }
@@ -312,8 +290,9 @@ export namespace MoWin
             else
             {
                 if(self == nullptr)
+                {
                     return raw_traits::DefaultProcedure(hwnd, uMsg, wParam, lParam);
-
+                }
                 return self->Procedure(Event(hwnd, static_cast<EventType>(uMsg), wParam, lParam));
             }
         }

@@ -21,13 +21,10 @@
     <ClCompile Include="Source\WindowCommon.ixx">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Win64\Unicode.ixx">
+    <ClCompile Include="Source\Platform\Win64Unicode.ixx">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Win64\Win64.ixx">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Win64\Common.ixx">
+    <ClCompile Include="Source\Platform\Win64MBCS.ixx">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

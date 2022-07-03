@@ -163,11 +163,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Source\Win64\Common.ixx" />
+    <ClCompile Include="Source\Platform\Win64MBCS.ixx" />
+    <ClCompile Include="Source\Platform\Win64Unicode.ixx" />
     <ClCompile Include="Source\Window.ixx" />
     <ClCompile Include="Source\WindowCommon.ixx" />
-    <ClCompile Include="Source\Win64\Win64.ixx" />
-    <ClCompile Include="Source\Win64\Unicode.ixx" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\WindowClass.h" />
