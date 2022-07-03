@@ -23,6 +23,7 @@ namespace MoWin
         using FileStringType = LPCSTR;
         using FileStandardClassType = WNDCLASSA;
         using FileExtendedClassType = WNDCLASSEXA;
+        using FileWindowCreateStruct = CREATESTRUCTA;
     }
 
     export template<class Ty>
@@ -58,14 +59,14 @@ namespace MoWin
 #ifdef _WIN64 
 #ifdef _MBCS
 
-    constexpr Platform defaultPlatform = Platform::Win64;
-    constexpr CharacterSet characterSet = CharacterSet::Unicode;
+    constexpr Platform defaultPlatform = filePlatform;
+    constexpr CharacterSet characterSet = fileCharacterSet;
 
     export template<class Ty>
         concept IsWindowClass = FileIsWindowClass<Ty>;
 
     export template<class Ty>
-        concept FullWindowClass = FileIsFullWindowClass<Ty>;
+        concept IsFullWindowClass = FileIsFullWindowClass<Ty>;
 
 #endif
 #endif
@@ -79,6 +80,7 @@ namespace MoWin
 
         using standard_class_type = FileStandardClassType;
         using extended_class_type = FileExtendedClassType;
+        using window_create_struct_type = FileWindowCreateStruct;
         using string_type = FileStringType;
 
         static WindowClassAtom RegisterClass(const standard_class_type& data)
@@ -120,14 +122,16 @@ namespace MoWin
 
         template<class Ty, class RetTy = LONG_PTR>
             requires (sizeof(Ty) == 8 && sizeof(RetTy) == 8)
-        static RetTy GetWindowData(HWND hwnd, int index, Ty value)
+        static RetTy SetWindowData(HWND hwnd, int index, Ty value)
         {
             return std::bit_cast<RetTy>(SetWindowLongPtrA(hwnd, index, std::bit_cast<LONG_PTR>(value)));
-        }
-
-        static LONG_PTR GetWindowData(HWND hwnd, int index)
+        }        
+        
+        template<class Ty = LONG_PTR>
+            requires (sizeof(Ty) == 8)
+        static Ty GetWindowData(HWND hwnd, int index)
         {
-            return GetWindowLongPtrA(hwnd, index);
+            return std::bit_cast<Ty>(GetWindowLongPtrA(hwnd, index));
         }
     };
 

@@ -68,6 +68,20 @@ export namespace MoWin
     public:
         operator HWND() const { return m_windowHandle; }
 
+    public:
+        void Show() const
+        {
+            ::ShowWindow(m_windowHandle, SW_SHOW);
+        }
+        void Maximize() const
+        {
+            ::ShowWindow(m_windowHandle, SW_MAXIMIZE);
+        }
+        void Minimize() const
+        {
+            ::ShowWindow(m_windowHandle, SW_MINIMIZE);
+        }
+
     private:
         HWND CreateHandle(WindowStyleEx extendedStyle, string_type windowName, WindowStyle style, int x, int y, int width, int height, HWND optionalParent, HMENU menu, HINSTANCE hInstance)
         {
@@ -77,7 +91,6 @@ export namespace MoWin
             }
 
             return platform_traits::CreateWindow(extendedStyle, Ty::ClassName(), windowName, style, x, y, width, height, optionalParent, menu, hInstance, &m_data);
-            return nullptr;
         }
     };
 

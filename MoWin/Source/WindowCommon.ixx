@@ -176,18 +176,19 @@ export namespace MoWin
     struct WindowClassTraitsBase
     {
     public:
-        using raw_traits = GlobalTrait;
-        using class_type = raw_traits::extended_class_type;
-        using string_type = raw_traits::string_type;
+        using platform_traits = GlobalTrait;
+        using class_type = platform_traits::extended_class_type;
+        using string_type = platform_traits::string_type;
 
     private:
+        inline static bool registered = false;
         inline static std::atomic<unsigned short> m_instanceCount;
         inline static HINSTANCE m_instance;
 
     public:
         static bool Registered()
         {
-            return m_instanceCount.load() > 0;
+            return registered;
         }
 
         static bool Register(HINSTANCE instance = nullptr)
@@ -248,41 +249,54 @@ export namespace MoWin
             else
                 windowClass.hIconSm = DefaultClass<string_type>::SmallIcon(m_instance);
 
-            if(raw_traits::RegisterClass(windowClass) == WindowClassAtom(0))
+            registered = platform_traits::RegisterClass(windowClass) != WindowClassAtom(0);
+
+            if(!registered)
             {
                 //Throw
             }
 
-            return Registered();
+            return registered;
         }
 
         static void Unregister()
         {
             unsigned short count = m_instanceCount.load();
             if(count == 0)
+            {
+                if(registered)
+                    registered = platform_traits::UnregisterClass(Ty::ClassName(), m_instance);
                 return;
+            }
+
 
             count = --m_instanceCount;
 
             if(count == 0)
-                raw_traits::UnregisterClass(Ty::ClassName(), m_instance);
+               registered = platform_traits::UnregisterClass(Ty::ClassName(), m_instance);
         }
 
         static LRESULT Procedure(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
-            if(uMsg == WM_CREATE)
+            if(uMsg == WM_NCCREATE)
             {
                 m_instanceCount++;
-                LPCREATESTRUCTW createStruct = std::bit_cast<LPCREATESTRUCTW>(lParam);
-                SetWindowLongPtrW(hwnd, GWLP_USERDATA, std::bit_cast<LONG_PTR>(createStruct->lpCreateParams));
+                typename platform_traits::window_create_struct_type* createStruct = std::bit_cast<typename platform_traits::window_create_struct_type*>(lParam);
+                platform_traits::SetWindowData(hwnd, GWLP_USERDATA, createStruct->lpCreateParams);
             }
+            //if(uMsg == WM_CREATE)
+            //{
+            //    m_instanceCount++;
+            //    typename platform_traits::window_create_struct_type* createStruct = std::bit_cast<typename platform_traits::window_create_struct_type*>(lParam);
+            //    platform_traits::SetWindowData(hwnd, GWLP_USERDATA, createStruct->lpCreateParams);
+            //}
 
             if(uMsg == WM_DESTROY)
             {
                 Unregister();
             }
 
-            Ty* self = std::bit_cast<Ty*>(GetWindowLongPtrW(hwnd, GWLP_USERDATA));
+            Ty* self = platform_traits::template GetWindowData<Ty*>(hwnd, GWLP_USERDATA);
             if constexpr(HasStaticProcedure<Ty>)
             {
                 return Ty::Procedure(self, Event(hwnd, static_cast<EventType>(uMsg), wParam, lParam));
@@ -291,7 +305,7 @@ export namespace MoWin
             {
                 if(self == nullptr)
                 {
-                    return raw_traits::DefaultProcedure(hwnd, uMsg, wParam, lParam);
+                    return platform_traits::DefaultProcedure(hwnd, uMsg, wParam, lParam);
                 }
                 return self->Procedure(Event(hwnd, static_cast<EventType>(uMsg), wParam, lParam));
             }
@@ -300,10 +314,6 @@ export namespace MoWin
 
     template<class Ty>
     struct WindowClassTraits;
-
-
-
-
 
 
     //https://docs.microsoft.com/en-us/windows/win32/winmsg/window-styles
