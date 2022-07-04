@@ -34,9 +34,8 @@ struct TESTWindowClass
 
     TESTWindowClass(HWND hwnd) {}
 
-    LRESULT Procedure(MoWin::Event event)
+    LRESULT operator()(MoWin::Event event)
     {
-
         switch(static_cast<UINT>(event.type))
         {
         case WM_COMMAND:
@@ -74,7 +73,7 @@ struct TESTWindowClass
     }
 };
 
-//static_assert(MoWin::IsStaticWindowClassW<TESTWindowClass>);
+static_assert(MoWin::IsWindowClass<TESTWindowClass>);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
                      _In_opt_ HINSTANCE hPrevInstance,

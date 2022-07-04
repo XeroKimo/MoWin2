@@ -95,12 +95,12 @@ export namespace MoWin
     };
 
     template<IsWindowClassA Ty>
-    using WindowA = WindowImpl<Ty, PlatformTraits<defaultPlatform, CharacterSet::MBCS>>;
+    using WindowA = WindowImpl<Ty, MBCSPlatformTraits>;
 
     template<IsWindowClassW Ty>
-    using WindowW = WindowImpl<Ty, PlatformTraits<defaultPlatform, CharacterSet::Unicode>>;
+    using WindowW = WindowImpl<Ty, UnicodePlatformTraits>;
 
     template<IsWindowClass Ty>
-    using Window = WindowImpl<Ty, PlatformTraits<defaultPlatform, characterSet>>;
+    using Window = WindowImpl<Ty, DefaultPlatformTraits>;
 
 }

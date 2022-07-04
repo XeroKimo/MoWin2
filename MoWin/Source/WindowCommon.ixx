@@ -88,7 +88,7 @@ export namespace MoWin
 
     DEFINE_ENUM_FLAG_OPERATORS(WindowClassStyle);
 
-    enum class EventType : UINT {};
+    export enum class EventType : UINT {};
 
     struct Event
     {
@@ -99,15 +99,9 @@ export namespace MoWin
     };
 
     template<class Ty>
-    concept HasStaticProcedure = requires (Ty * self, Event event)
+    concept HasProcedure = requires (Ty self, Event event)
     {
-        { Ty::Procedure(self, event) } -> std::same_as<LRESULT>;
-    };
-
-    template<class Ty>
-    concept HasObjectProcedure = requires (Ty self, Event event)
-    {
-        { self.Procedure(event) } -> std::same_as<LRESULT>;
+        { self.operator()(event) } -> std::same_as<LRESULT>;
     };
 
     template<class Ty>
@@ -284,31 +278,19 @@ export namespace MoWin
                 typename platform_traits::window_create_struct_type* createStruct = std::bit_cast<typename platform_traits::window_create_struct_type*>(lParam);
                 platform_traits::SetWindowData(hwnd, GWLP_USERDATA, createStruct->lpCreateParams);
             }
-            //if(uMsg == WM_CREATE)
-            //{
-            //    m_instanceCount++;
-            //    typename platform_traits::window_create_struct_type* createStruct = std::bit_cast<typename platform_traits::window_create_struct_type*>(lParam);
-            //    platform_traits::SetWindowData(hwnd, GWLP_USERDATA, createStruct->lpCreateParams);
-            //}
-
-            if(uMsg == WM_DESTROY)
+            if(uMsg == WM_NCDESTROY)
             {
                 Unregister();
             }
 
             Ty* self = platform_traits::template GetWindowData<Ty*>(hwnd, GWLP_USERDATA);
-            if constexpr(HasStaticProcedure<Ty>)
+
+            if(self == nullptr)
             {
-                return Ty::Procedure(self, Event(hwnd, static_cast<EventType>(uMsg), wParam, lParam));
+                return platform_traits::DefaultProcedure(hwnd, uMsg, wParam, lParam);
             }
-            else
-            {
-                if(self == nullptr)
-                {
-                    return platform_traits::DefaultProcedure(hwnd, uMsg, wParam, lParam);
-                }
-                return self->Procedure(Event(hwnd, static_cast<EventType>(uMsg), wParam, lParam));
-            }
+            return (*self)(Event(hwnd, static_cast<EventType>(uMsg), wParam, lParam));
+
         }
     };
 

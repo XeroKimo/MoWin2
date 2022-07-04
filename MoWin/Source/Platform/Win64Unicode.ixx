@@ -12,7 +12,7 @@ export import :Common;
 
 namespace MoWin
 {
-    inline namespace W64U
+    namespace W64U
     {
         constexpr Platform filePlatform = Platform::Win64;
         constexpr CharacterSet fileCharacterSet = CharacterSet::Unicode;
@@ -28,18 +28,18 @@ namespace MoWin
     export template<class Ty>
         concept IsWindowClassW = requires
     {
-        { Ty::ClassName() } -> std::same_as<FileStringType>;
-    } && (HasStaticProcedure<Ty> || HasObjectProcedure<Ty>);
+        { Ty::ClassName() } -> std::same_as<W64U::FileStringType>;
+    } && HasProcedure<Ty>;
 
 
-    inline namespace W64U
+    namespace W64U
     {
         template<class Ty>
         concept FileIsWindowClass = IsWindowClassW<Ty>;
     }
 
     export template<class Ty>
-        concept IsFullWindowClassW = FileIsWindowClass<Ty> &&
+        concept IsFullWindowClassW = W64U::FileIsWindowClass<Ty> &&
         StyleDefined<Ty> &&
         ExtraClassBytesDefined<Ty> &&
         ExtraWindowBytesDefined<Ty> &&
@@ -49,38 +49,40 @@ namespace MoWin
         MenuDefined<Ty, LPCWSTR> &&
         SmallIconDefined<Ty>;
 
-    inline namespace W64U
+    namespace W64U
     {
         template<class Ty>
         concept FileIsFullWindowClass = IsFullWindowClassW<Ty>;
     }
 
 #ifdef _WIN64 
+
+    export using UnicodePlatformTraits = PlatformTraits<W64U::filePlatform, W64U::fileCharacterSet>;
 #ifdef _UNICODE
 
-    constexpr Platform defaultPlatform = filePlatform;
-    constexpr CharacterSet characterSet = fileCharacterSet;
+    constexpr Platform defaultPlatform = W64U::filePlatform;
+    constexpr CharacterSet characterSet = W64U::fileCharacterSet;
 
     export template<class Ty>
-        concept IsWindowClass = FileIsWindowClass<Ty>;
+        concept IsWindowClass = W64U::FileIsWindowClass<Ty>;
 
     export template<class Ty>
-        concept IsFullWindowClass = FileIsFullWindowClass<Ty>;
+        concept IsFullWindowClass = W64U::FileIsFullWindowClass<Ty>;
 
+    export using DefaultPlatformTraits = UnicodePlatformTraits;
 #endif
 #endif
-
 
     export template<>
-    struct PlatformTraits<filePlatform, fileCharacterSet>
+    struct PlatformTraits<W64U::filePlatform, W64U::fileCharacterSet>
     {
-        static constexpr Platform platform_value = filePlatform;
-        static constexpr CharacterSet character_set_value = fileCharacterSet;
+        static constexpr Platform platform_value = W64U::filePlatform;
+        static constexpr CharacterSet character_set_value = W64U::fileCharacterSet;
 
-        using standard_class_type = FileStandardClassType;
-        using extended_class_type = FileExtendedClassType;
-        using window_create_struct_type = FileWindowCreateStruct;
-        using string_type = FileStringType;
+        using standard_class_type = W64U::FileStandardClassType;
+        using extended_class_type = W64U::FileExtendedClassType;
+        using window_create_struct_type = W64U::FileWindowCreateStruct;
+        using string_type = W64U::FileStringType;
 
         static WindowClassAtom RegisterClass(const standard_class_type& data)
         {
@@ -135,9 +137,9 @@ namespace MoWin
     };
 
     export template<>
-    struct DefaultClass<filePlatform, fileCharacterSet> : public DefaultClassCommon
+    struct DefaultClass<W64U::filePlatform, W64U::fileCharacterSet> : public DefaultClassCommon
     {
-        using string_type = FileStringType;
+        using string_type = W64U::FileStringType;
 
         static string_type ClassName() { return L"DefaultClassW"; }
         static string_type MenuName() { return nullptr; }
@@ -151,12 +153,12 @@ namespace MoWin
                 PostQuitMessage(0);
             }
 
-            return PlatformTraits<filePlatform, fileCharacterSet>::DefaultProcedure(event.window, static_cast<UINT>(event.type), event.wParam, event.lParam);
+            return PlatformTraits<W64U::filePlatform, W64U::fileCharacterSet>::DefaultProcedure(event.window, static_cast<UINT>(event.type), event.wParam, event.lParam);
         }
     };
 
-    export template<FileIsWindowClass Ty>
-        struct WindowClassTraits<Ty> : public WindowClassTraitsBase<Ty, FilePlatformTraits>
+    export template<W64U::FileIsWindowClass Ty>
+        struct WindowClassTraits<Ty> : public WindowClassTraitsBase<Ty, W64U::FilePlatformTraits>
     {
 
     };
