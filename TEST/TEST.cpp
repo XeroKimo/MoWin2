@@ -34,6 +34,12 @@ struct TESTWindowClass
 
     TESTWindowClass(HWND hwnd) {}
 
+    LRESULT operator()(MoWin::Event::WindowNotification::Destroy event)
+    {
+        PostQuitMessage(0);
+        return 0;
+    }
+
     LRESULT operator()(MoWin::Event event)
     {
         switch(static_cast<UINT>(event.type))

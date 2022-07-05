@@ -60,8 +60,8 @@ namespace MoWin
     export using MBCSPlatformTraits = PlatformTraits<W64M::filePlatform, W64M::fileCharacterSet>;
 #ifdef _MBCS
 
-    constexpr Platform defaultPlatform = W64M::filePlatform;
-    constexpr CharacterSet characterSet = W64M::fileCharacterSet;
+    export extern constexpr Platform defaultPlatform = W64M::filePlatform;
+    export extern constexpr CharacterSet characterSet = W64M::fileCharacterSet;
 
     export template<class Ty>
         concept IsWindowClass = W64M::FileIsWindowClass<Ty>;
@@ -103,6 +103,11 @@ namespace MoWin
         static LRESULT DefaultProcedure(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
             return DefWindowProcW(hwnd, uMsg, wParam, lParam);
+        }
+
+        static LRESULT DefaultProcedure(Event event)
+        {
+            return DefaultProcedure(event.window, static_cast<UINT>(event.type), event.wParam, event.lParam);
         }
 
         static HWND CreateWindow(WindowStyleEx extendedStyle, string_type className, string_type windowName, WindowStyle style, int x, int y, int width, int height, HWND optionalParent, HMENU menu, HINSTANCE hInstance, void* data)
@@ -154,7 +159,7 @@ namespace MoWin
                 PostQuitMessage(0);
             }
 
-            return PlatformTraits<W64M::filePlatform, W64M::fileCharacterSet>::DefaultProcedure(event.window, static_cast<UINT>(event.type), event.wParam, event.lParam);
+            return PlatformTraits<W64M::filePlatform, W64M::fileCharacterSet>::DefaultProcedure(event);
         }
     };
 
