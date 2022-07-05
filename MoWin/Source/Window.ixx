@@ -82,6 +82,9 @@ export namespace MoWin
             ::ShowWindow(m_windowHandle, SW_MINIMIZE);
         }
 
+        Ty& ClassData() { return m_data; }
+        const Ty& ClassData() const { return m_data; }
+
     private:
         HWND CreateHandle(WindowStyleEx extendedStyle, string_type windowName, WindowStyle style, int x, int y, int width, int height, HWND optionalParent, HMENU menu, HINSTANCE hInstance)
         {
