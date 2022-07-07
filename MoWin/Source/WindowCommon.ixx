@@ -67,66 +67,34 @@ export namespace MoWin
         Style_Changing = WM_STYLECHANGING,
         Theme_Changed = WM_THEMECHANGED,
         User_Changed = WM_USERCHANGED,
-        Window_Pos_Changed = WM_WINDOWPOSCHANGED,
-        Window_Pos_Changing = WM_WINDOWPOSCHANGING,
+        Window_Position_Changed = WM_WINDOWPOSCHANGED,
+        Window_Position_Changing = WM_WINDOWPOSCHANGING,
 
-        //??? events
+        //Keyboard Input Notification Events
+        Activate = WM_ACTIVATE,
+        Application_Command = WM_APPCOMMAND,
+        Char = WM_CHAR,
+        Dead_Char = WM_DEADCHAR,
+        Hotkey = WM_HOTKEY,
+        Key_Down = WM_KEYDOWN,
+        Key_Up = WM_KEYUP,
+        Kill_Focus = WM_KILLFOCUS,
+        Set_Focus = WM_SETFOCUS,
+        System_Dead_Char = WM_SYSDEADCHAR,
+        System_Key_Down = WM_SYSKEYDOWN,
+        System_Key_Up = WM_SYSKEYUP,
+        Unicode_Char = WM_UNICHAR,
     };
 
     enum class EventCatagoryType
     {
-        Keyboard,
         Window_Notifications,
-        All
+        Keyboard_Notfications,
+        All = 255
     };
 
     template<EventType Type>
     struct TypedEvent;
-
-    template<class Func, EventType E>
-    concept VisitableEvent = std::invocable<Func, TypedEvent<E>>;
-
-    template<class Func>
-    concept VisitableWindowNotifications = 
-        std::invocable<Func, TypedEvent<EventType::Activate_App>> ||
-        std::invocable<Func, TypedEvent<EventType::Cancel_Mode>> ||
-        std::invocable<Func, TypedEvent<EventType::Child_Activate>> ||
-        std::invocable<Func, TypedEvent<EventType::Close>> ||
-        std::invocable<Func, TypedEvent<EventType::Compacting>> ||
-        std::invocable<Func, TypedEvent<EventType::Create>> ||
-        std::invocable<Func, TypedEvent<EventType::Destroy>> ||
-        std::invocable<Func, TypedEvent<EventType::Enable>> ||
-        std::invocable<Func, TypedEvent<EventType::Enter_Size_Move>> ||
-        std::invocable<Func, TypedEvent<EventType::Exit_Size_Move>> ||
-        std::invocable<Func, TypedEvent<EventType::Get_Icon>> ||
-        std::invocable<Func, TypedEvent<EventType::Get_Min_Max_Info>> ||
-        std::invocable<Func, TypedEvent<EventType::Input_Language_Change>> ||
-        std::invocable<Func, TypedEvent<EventType::Input_Language_Change_Request>> ||
-        std::invocable<Func, TypedEvent<EventType::Move>> ||
-        std::invocable<Func, TypedEvent<EventType::Moving>> ||
-        std::invocable<Func, TypedEvent<EventType::Nonclient_Activate>> ||
-        std::invocable<Func, TypedEvent<EventType::Nonclient_Calculate_Size>> ||
-        std::invocable<Func, TypedEvent<EventType::Nonclient_Create>> ||
-        std::invocable<Func, TypedEvent<EventType::Nonclient_Destroy>> ||
-        std::invocable<Func, TypedEvent<EventType::Null>> ||
-        std::invocable<Func, TypedEvent<EventType::QueryDragIcon>> ||
-        std::invocable<Func, TypedEvent<EventType::QueryOpen>> ||
-        std::invocable<Func, TypedEvent<EventType::Quit>> ||
-        std::invocable<Func, TypedEvent<EventType::ShowWindow>> ||
-        std::invocable<Func, TypedEvent<EventType::Size>> ||
-        std::invocable<Func, TypedEvent<EventType::Sizing>> ||
-        std::invocable<Func, TypedEvent<EventType::Style_Changed>> ||
-        std::invocable<Func, TypedEvent<EventType::Style_Changing>> ||
-        std::invocable<Func, TypedEvent<EventType::Theme_Changed>> ||
-        std::invocable<Func, TypedEvent<EventType::User_Changed>> ||
-        std::invocable<Func, TypedEvent<EventType::Window_Pos_Changed>> ||
-        std::invocable<Func, TypedEvent<EventType::Window_Pos_Changing>>;
-
-    template<class Func>
-    concept HasVisitableEvent = VisitableWindowNotifications<Func>;
-
-
-
 
     template<EventCatagoryType Type>
     struct EventCategory;
@@ -141,19 +109,13 @@ export namespace MoWin
 
     struct Event : public EventBase
     {
-        using Keyboard = EventCategory<EventCatagoryType::Keyboard>;
-        using WindowNotification = EventCategory<EventCatagoryType::Window_Notifications>;
+        using KeyboardInputNotifications = EventCategory<EventCatagoryType::Keyboard_Notfications>;
+        using WindowNotifications = EventCategory<EventCatagoryType::Window_Notifications>;
         using All = EventCategory<EventCatagoryType::All>;
     };
 
 
-
-
-    template<>
-    struct EventCategory<EventCatagoryType::Keyboard>
-    {
-
-    };
+#pragma region Event Categories
 
     template<>
     struct EventCategory<EventCatagoryType::Window_Notifications>
@@ -189,9 +151,28 @@ export namespace MoWin
         using StyleChanging = TypedEvent<EventType::Style_Changing>;
         using ThemeChanged = TypedEvent<EventType::Theme_Changed>;
         using UsedChanged = TypedEvent<EventType::User_Changed>;
-        using WindowPosChanged = TypedEvent<EventType::Window_Pos_Changed>;
-        using WindowPosChanging = TypedEvent<EventType::Window_Pos_Changing>;
+        using WindowPositonChanged = TypedEvent<EventType::Window_Position_Changed>;
+        using WindowPositionChanging = TypedEvent<EventType::Window_Position_Changing>;
     };
+
+    template<>
+    struct EventCategory<EventCatagoryType::Keyboard_Notfications>
+    {
+        using Activate = TypedEvent<EventType::Activate>;
+        using ApplicationCommand = TypedEvent<EventType::Application_Command>;
+        using Char = TypedEvent<EventType::Char>;
+        using DeadChar = TypedEvent<EventType::Dead_Char>;
+        using Hotkey = TypedEvent<EventType::Hotkey>;
+        using KeyDown = TypedEvent<EventType::Key_Down>;
+        using KeyUp = TypedEvent<EventType::Key_Up>;
+        using KillFocus = TypedEvent<EventType::Kill_Focus>;
+        using SetFocus = TypedEvent<EventType::Set_Focus>;
+        using SystemDeadChar = TypedEvent<EventType::System_Dead_Char>;
+        using SystemKeyDown = TypedEvent<EventType::System_Key_Down>;
+        using SystemKeyUp = TypedEvent<EventType::System_Key_Up>;
+        using UnicodeChar = TypedEvent<EventType::Unicode_Char>;
+    };
+
 
     template<>
     struct EventCategory<EventCatagoryType::All>
@@ -228,11 +209,63 @@ export namespace MoWin
         using StyleChanging = TypedEvent<EventType::Style_Changing>;
         using ThemeChanged = TypedEvent<EventType::Theme_Changed>;
         using UsedChanged = TypedEvent<EventType::User_Changed>;
-        using WindowPosChanged = TypedEvent<EventType::Window_Pos_Changed>;
-        using WindowPosChanging = TypedEvent<EventType::Window_Pos_Changing>;
+        using WindowPosChanged = TypedEvent<EventType::Window_Position_Changed>;
+        using WindowPosChanging = TypedEvent<EventType::Window_Position_Changing>;
 
-        //??? events
+        //Keyboard Input Notifications events
+        using Activate = TypedEvent<EventType::Activate>;
+        using ApplicationCommand = TypedEvent<EventType::Application_Command>;
+        using Char = TypedEvent<EventType::Char>;
+        using DeadChar = TypedEvent<EventType::Dead_Char>;
+        using Hotkey = TypedEvent<EventType::Hotkey>;
+        using KeyDown = TypedEvent<EventType::Key_Down>;
+        using KeyUp = TypedEvent<EventType::Key_Up>;
+        using KillFocus = TypedEvent<EventType::Kill_Focus>;
+        using SetFocus = TypedEvent<EventType::Set_Focus>;
+        using SystemDeadChar = TypedEvent<EventType::System_Dead_Char>;
+        using SystemKeyDown = TypedEvent<EventType::System_Key_Down>;
+        using SystemKeyUp = TypedEvent<EventType::System_Key_Up>;
+        using UnicodeChar = TypedEvent<EventType::Unicode_Char>;
     };
+#pragma endregion
+
+#pragma region Window Notification Events
+
+    template<class Func>
+    concept VisitableWindowNotifications =
+        std::invocable<Func, TypedEvent<EventType::Activate_App>> ||
+        std::invocable<Func, TypedEvent<EventType::Cancel_Mode>> ||
+        std::invocable<Func, TypedEvent<EventType::Child_Activate>> ||
+        std::invocable<Func, TypedEvent<EventType::Close>> ||
+        std::invocable<Func, TypedEvent<EventType::Compacting>> ||
+        std::invocable<Func, TypedEvent<EventType::Create>> ||
+        std::invocable<Func, TypedEvent<EventType::Destroy>> ||
+        std::invocable<Func, TypedEvent<EventType::Enable>> ||
+        std::invocable<Func, TypedEvent<EventType::Enter_Size_Move>> ||
+        std::invocable<Func, TypedEvent<EventType::Exit_Size_Move>> ||
+        std::invocable<Func, TypedEvent<EventType::Get_Icon>> ||
+        std::invocable<Func, TypedEvent<EventType::Get_Min_Max_Info>> ||
+        std::invocable<Func, TypedEvent<EventType::Input_Language_Change>> ||
+        std::invocable<Func, TypedEvent<EventType::Input_Language_Change_Request>> ||
+        std::invocable<Func, TypedEvent<EventType::Move>> ||
+        std::invocable<Func, TypedEvent<EventType::Moving>> ||
+        std::invocable<Func, TypedEvent<EventType::Nonclient_Activate>> ||
+        std::invocable<Func, TypedEvent<EventType::Nonclient_Calculate_Size>> ||
+        std::invocable<Func, TypedEvent<EventType::Nonclient_Create>> ||
+        std::invocable<Func, TypedEvent<EventType::Nonclient_Destroy>> ||
+        std::invocable<Func, TypedEvent<EventType::Null>> ||
+        std::invocable<Func, TypedEvent<EventType::QueryDragIcon>> ||
+        std::invocable<Func, TypedEvent<EventType::QueryOpen>> ||
+        std::invocable<Func, TypedEvent<EventType::Quit>> ||
+        std::invocable<Func, TypedEvent<EventType::ShowWindow>> ||
+        std::invocable<Func, TypedEvent<EventType::Size>> ||
+        std::invocable<Func, TypedEvent<EventType::Sizing>> ||
+        std::invocable<Func, TypedEvent<EventType::Style_Changed>> ||
+        std::invocable<Func, TypedEvent<EventType::Style_Changing>> ||
+        std::invocable<Func, TypedEvent<EventType::Theme_Changed>> ||
+        std::invocable<Func, TypedEvent<EventType::User_Changed>> ||
+        std::invocable<Func, TypedEvent<EventType::Window_Position_Changed>> ||
+        std::invocable<Func, TypedEvent<EventType::Window_Position_Changing>>;
 
     template<>
     struct TypedEvent<EventType::Activate_App> : public EventBase
@@ -332,7 +365,8 @@ export namespace MoWin
     struct TypedEvent<EventType::Nonclient_Activate> : public EventBase
     {
         bool Active() const { return wParam; }
-        //TODO: Figure out the lParam https://docs.microsoft.com/en-us/windows/win32/winmsg/wm-ncactivate
+        bool RedrawWindow() const { return lParam != -1; }
+        //TODO: Figure out the how to interpret the update region of the non-client area using the lParam https://docs.microsoft.com/en-us/windows/win32/winmsg/wm-ncactivate
     };
     template<>
     struct TypedEvent<EventType::Nonclient_Calculate_Size> : public EventBase
@@ -429,20 +463,76 @@ export namespace MoWin
     {
     };
     template<>
-    struct TypedEvent<EventType::Window_Pos_Changed> : public EventBase
+    struct TypedEvent<EventType::Window_Position_Changed> : public EventBase
     {
         WINDOWPOS& Data() const { return *std::bit_cast<WINDOWPOS*>(lParam); }
     };
     template<>
-    struct TypedEvent<EventType::Window_Pos_Changing> : public EventBase
+    struct TypedEvent<EventType::Window_Position_Changing> : public EventBase
     {
         WINDOWPOS& Data() const { return *std::bit_cast<WINDOWPOS*>(lParam); }
     };
 
-}
+#pragma endregion
 
-export namespace MoWin
-{
+#pragma region Keyyboard Notificaiton Events
+    template<class Func>
+    concept VisitableKeyboardNotifications =
+        std::invocable<Func, TypedEvent<EventType::Activate>> ||
+        std::invocable<Func, TypedEvent<EventType::Application_Command>> ||
+        std::invocable<Func, TypedEvent<EventType::Char>> ||
+        std::invocable<Func, TypedEvent<EventType::Dead_Char>> ||
+        std::invocable<Func, TypedEvent<EventType::Hotkey>> ||
+        std::invocable<Func, TypedEvent<EventType::Key_Down>> ||
+        std::invocable<Func, TypedEvent<EventType::Key_Up>> ||
+        std::invocable<Func, TypedEvent<EventType::Kill_Focus>> ||
+        std::invocable<Func, TypedEvent<EventType::Set_Focus>> ||
+        std::invocable<Func, TypedEvent<EventType::System_Dead_Char>> ||
+        std::invocable<Func, TypedEvent<EventType::System_Key_Down>> ||
+        std::invocable<Func, TypedEvent<EventType::System_Key_Up>> ||
+        std::invocable<Func, TypedEvent<EventType::Unicode_Char>>;
+
+    template<>
+    struct TypedEvent<EventType::Activate> : public EventBase
+    {
+        bool Inactive() const { return wParam == WA_INACTIVE; }
+        bool Active() const { return wParam == WA_ACTIVE; }
+        bool ClickActive() const { return wParam == WA_CLICKACTIVE; }
+
+        //A handle to the window being activated or deactivated, depending on the value of the wParam parameter. 
+        //If Inactive(), OtherWindow() is the handle to the window being activated. 
+        //If Active() or ClickActive(), OtherWindow() is the handle to the window being deactivated. This handle can be NULL.
+        HWND OtherWindow() const { return std::bit_cast<HWND>(lParam); }
+    };
+    template<>
+    struct TypedEvent<EventType::Application_Command> : public EventBase
+    {
+        HWND AffectedWindow() const { return std::bit_cast<HWND>(wParam); }
+
+
+    };
+    using Char = TypedEvent<EventType::Char>;
+    using DeadChar = TypedEvent<EventType::Dead_Char>;
+    using Hotkey = TypedEvent<EventType::Hotkey>;
+    using KeyDown = TypedEvent<EventType::Key_Down>;
+    using KeyUp = TypedEvent<EventType::Key_Up>;
+    using KillFocus = TypedEvent<EventType::Kill_Focus>;
+    using SetFocus = TypedEvent<EventType::Set_Focus>;
+    using SystemDeadChar = TypedEvent<EventType::System_Dead_Char>;
+    using SystemKeyDown = TypedEvent<EventType::System_Key_Down>;
+    using SystemKeyUp = TypedEvent<EventType::System_Key_Up>;
+    using UnicodeChar = TypedEvent<EventType::Unicode_Char>;
+
+#pragma endregion
+
+    template<class Func, EventType E>
+    concept VisitableEvent = std::invocable<Func, TypedEvent<E>>;
+
+    template<class Func>
+    concept HasVisitableEvent = VisitableWindowNotifications<Func> ||
+        VisitableKeyboardNotifications<Func>;
+
+
     template<EventType Type, class Func, std::invocable<Event> DefaultFunc>
     LRESULT VisitEventImpl(Func&& visitor, Event&& event, DefaultFunc&& defaultFunc)
     {
@@ -461,7 +551,7 @@ export namespace MoWin
     {
         switch(event.type)
         {
-            //Window notifications
+#pragma region Window Notification Event cases
         case EventType::Activate_App:
             return VisitEventImpl<EventType::Activate_App>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
         case EventType::Cancel_Mode:
@@ -524,10 +614,40 @@ export namespace MoWin
             return VisitEventImpl<EventType::Theme_Changed>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
         case EventType::User_Changed:
             return VisitEventImpl<EventType::User_Changed>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
-        case EventType::Window_Pos_Changed:
-            return VisitEventImpl<EventType::Window_Pos_Changed>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
-        case EventType::Window_Pos_Changing:
-            return VisitEventImpl<EventType::Window_Pos_Changing>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+        case EventType::Window_Position_Changed:
+            return VisitEventImpl<EventType::Window_Position_Changed>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+        case EventType::Window_Position_Changing:
+            return VisitEventImpl<EventType::Window_Position_Changing>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+#pragma endregion
+
+#pragma region Keyboard Notification Event cases
+            case EventType::Activate:
+                return VisitEventImpl<EventType::Activate>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            case EventType::Application_Command:
+                return VisitEventImpl<EventType::Application_Command>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            case EventType::Char:
+                return VisitEventImpl<EventType::Char>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            case EventType::Dead_Char:
+                return VisitEventImpl<EventType::Dead_Char>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            case EventType::Hotkey:
+                return VisitEventImpl<EventType::Hotkey>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            case EventType::Key_Down:
+                return VisitEventImpl<EventType::Key_Down>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            case EventType::Key_Up:
+                return VisitEventImpl<EventType::Key_Up>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            case EventType::Kill_Focus:
+                return VisitEventImpl<EventType::Kill_Focus>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            case EventType::Set_Focus:
+                return VisitEventImpl<EventType::Set_Focus>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            case EventType::System_Dead_Char:
+                return VisitEventImpl<EventType::System_Dead_Char>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            case EventType::System_Key_Down:
+                return VisitEventImpl<EventType::System_Key_Down>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            case EventType::System_Key_Up:
+                return VisitEventImpl<EventType::System_Key_Up>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            case EventType::Unicode_Char:
+                return VisitEventImpl<EventType::Unicode_Char>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+#pragma endregion
 
         default:
             return defaultFunc(std::forward<Event>(event));

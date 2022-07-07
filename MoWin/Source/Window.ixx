@@ -4,6 +4,7 @@ module;
 #include <memory>
 
 export module MoWin.Window;
+export import :Common;
 
 #ifdef _WIN64
 export import :Platform.Win64.Unicode;
@@ -47,6 +48,7 @@ export namespace MoWin
             m_windowHandle(std::move(other.m_windowHandle)),
             m_data(std::move(other.m_data))
         {
+            other.m_windowHandle = nullptr;
             platform_traits::SetWindowData(m_windowHandle, GWLP_USERDATA, &m_data);
         }
 
@@ -54,6 +56,7 @@ export namespace MoWin
         WindowImpl& operator=(WindowImpl&& other) noexcept
         {
             m_windowHandle = std::move(other.m_windowHandle);
+            other.m_windowHandle = nullptr;
             m_data = std::move(other.m_data);
             platform_traits::SetWindowData(m_windowHandle, GWLP_USERDATA, &m_data);
             return *this;

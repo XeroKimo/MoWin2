@@ -34,7 +34,7 @@ struct TESTWindowClass
 
     TESTWindowClass(HWND hwnd) {}
 
-    LRESULT operator()(MoWin::Event::WindowNotification::Destroy event)
+    LRESULT operator()(MoWin::Event::WindowNotifications::Destroy event)
     {
         PostQuitMessage(0);
         return 0;

@@ -4,7 +4,7 @@ module;
 #include <bit>
 export module MoWin.Window:Platform.Win64.MBCS;
 
-export import :Common;
+import :Common;
 
 #undef CreateWindow
 #undef UnregisterClass
