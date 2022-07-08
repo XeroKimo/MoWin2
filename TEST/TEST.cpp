@@ -23,8 +23,8 @@ INT_PTR CALLBACK    About(HWND, UINT, WPARAM, LPARAM);
 struct TESTWindowClass
 {
     static MoWin::WindowClassStyle Style() { return MoWin::WindowClassStyle(CS_HREDRAW | CS_VREDRAW); }
-    static int ExtraClassBytes() { return 0; }
-    static int ExtraWindowBytes() { return 0; }
+    //static int ExtraClassBytes() { return 0; }
+    //static int ExtraWindowBytes() { return 0; }
     static HICON Icon(HINSTANCE instance) { return LoadIcon(instance, MAKEINTRESOURCE(IDI_TEST)); }
     static HCURSOR Cursor(HINSTANCE instance) { return LoadCursor(nullptr, IDC_ARROW); }
     static HBRUSH BackgroundBrush() { return (HBRUSH)(COLOR_WINDOW + 1); }
@@ -32,8 +32,15 @@ struct TESTWindowClass
     static LPCWSTR MenuName() { return MAKEINTRESOURCEW(IDC_TEST); }
     static HICON SmallIcon(HINSTANCE instance) { return LoadIcon(instance, MAKEINTRESOURCE(IDI_SMALL)); }
 
-    TESTWindowClass(HWND hwnd) {}
+    //TESTWindowClass() {}
 
+    HWND hwnd;    
+
+    LRESULT operator()(MoWin::Event::WindowNotifications::Create event)
+    {
+        hwnd = event.window;
+        return TRUE;
+    }
     LRESULT operator()(MoWin::Event::WindowNotifications::Destroy event)
     {
         PostQuitMessage(0);
@@ -69,11 +76,6 @@ struct TESTWindowClass
             EndPaint(event.window, &ps);
         }
         break;
-        case WM_DESTROY:
-            //PostQuitMessage(0);
-            break;
-        default:
-            return DefWindowProc(event.window, static_cast<UINT>(event.type), event.wParam, event.lParam);
         }
         return MoWin::eventUnprocessed;
     }
