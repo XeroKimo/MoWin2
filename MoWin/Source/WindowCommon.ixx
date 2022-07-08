@@ -5,6 +5,7 @@ module;
 #include <memory>
 #include <atomic>
 #include <bit>
+#include <variant>
 
 export module MoWin.Window:Common;
 
@@ -28,12 +29,10 @@ namespace MoWin
 
     export template<Platform P, CharacterSet C>
         struct PlatformTraits;
-};
 
-//Events
-export namespace MoWin
-{
-    enum class EventType : UINT
+#pragma region Events
+
+    export enum class EventType : UINT
     {
         //Window notification events
         Activate_App = WM_ACTIVATEAPP,
@@ -86,20 +85,20 @@ export namespace MoWin
         Unicode_Char = WM_UNICHAR,
     };
 
-    enum class EventCatagoryType
+    export enum class EventCatagoryType
     {
         Window_Notifications,
         Keyboard_Notfications,
         All = 255
     };
 
-    template<EventType Type>
+    export template<EventType Type>
     struct TypedEvent;
 
-    template<EventCatagoryType Type>
+    export template<EventCatagoryType Type>
     struct EventCategory;
 
-    struct EventBase
+    export struct EventBase
     {
         HWND window;
         EventType type;
@@ -107,13 +106,52 @@ export namespace MoWin
         LPARAM lParam;
     };
 
-    struct Event : public EventBase
+    export struct Event : public EventBase
     {
         using KeyboardInputNotifications = EventCategory<EventCatagoryType::Keyboard_Notfications>;
         using WindowNotifications = EventCategory<EventCatagoryType::Window_Notifications>;
         using All = EventCategory<EventCatagoryType::All>;
     };
 
+    template<class Func, class RetVal, class... Args>
+    concept invocable_r = std::is_invocable_r_v<RetVal, Func, Args...>;
+
+
+    struct EventUnprocessed
+    {
+    };
+
+    export inline constexpr EventUnprocessed eventUnprocessed{};
+
+    export class EventProcessed
+    {
+    private:
+        std::variant<LRESULT, EventUnprocessed> m_processedState;
+
+    public:
+        EventProcessed() : m_processedState(eventUnprocessed)
+        {
+        }
+        EventProcessed(EventUnprocessed) : m_processedState(eventUnprocessed) {}
+        EventProcessed(LRESULT result) : m_processedState(result) {}
+
+        template<invocable_r<EventProcessed, Event> Func>
+        EventProcessed MapUnprocessed(Func&& func, Event&& event)
+        {
+            if(std::holds_alternative<LRESULT>(m_processedState))
+                return *this;
+            else
+                return func(std::forward<Event>(event));
+        }
+
+        operator LRESULT() const
+        {
+            if(std::holds_alternative<LRESULT>(m_processedState))
+                return std::get<0>(m_processedState);
+            else
+                return 0;
+        }
+    };
 
 #pragma region Event Categories
 
@@ -231,41 +269,41 @@ export namespace MoWin
 
 #pragma region Window Notification Events
 
-    template<class Func>
+    export template<class Func>
     concept VisitableWindowNotifications =
-        std::invocable<Func, TypedEvent<EventType::Activate_App>> ||
-        std::invocable<Func, TypedEvent<EventType::Cancel_Mode>> ||
-        std::invocable<Func, TypedEvent<EventType::Child_Activate>> ||
-        std::invocable<Func, TypedEvent<EventType::Close>> ||
-        std::invocable<Func, TypedEvent<EventType::Compacting>> ||
-        std::invocable<Func, TypedEvent<EventType::Create>> ||
-        std::invocable<Func, TypedEvent<EventType::Destroy>> ||
-        std::invocable<Func, TypedEvent<EventType::Enable>> ||
-        std::invocable<Func, TypedEvent<EventType::Enter_Size_Move>> ||
-        std::invocable<Func, TypedEvent<EventType::Exit_Size_Move>> ||
-        std::invocable<Func, TypedEvent<EventType::Get_Icon>> ||
-        std::invocable<Func, TypedEvent<EventType::Get_Min_Max_Info>> ||
-        std::invocable<Func, TypedEvent<EventType::Input_Language_Change>> ||
-        std::invocable<Func, TypedEvent<EventType::Input_Language_Change_Request>> ||
-        std::invocable<Func, TypedEvent<EventType::Move>> ||
-        std::invocable<Func, TypedEvent<EventType::Moving>> ||
-        std::invocable<Func, TypedEvent<EventType::Nonclient_Activate>> ||
-        std::invocable<Func, TypedEvent<EventType::Nonclient_Calculate_Size>> ||
-        std::invocable<Func, TypedEvent<EventType::Nonclient_Create>> ||
-        std::invocable<Func, TypedEvent<EventType::Nonclient_Destroy>> ||
-        std::invocable<Func, TypedEvent<EventType::Null>> ||
-        std::invocable<Func, TypedEvent<EventType::QueryDragIcon>> ||
-        std::invocable<Func, TypedEvent<EventType::QueryOpen>> ||
-        std::invocable<Func, TypedEvent<EventType::Quit>> ||
-        std::invocable<Func, TypedEvent<EventType::ShowWindow>> ||
-        std::invocable<Func, TypedEvent<EventType::Size>> ||
-        std::invocable<Func, TypedEvent<EventType::Sizing>> ||
-        std::invocable<Func, TypedEvent<EventType::Style_Changed>> ||
-        std::invocable<Func, TypedEvent<EventType::Style_Changing>> ||
-        std::invocable<Func, TypedEvent<EventType::Theme_Changed>> ||
-        std::invocable<Func, TypedEvent<EventType::User_Changed>> ||
-        std::invocable<Func, TypedEvent<EventType::Window_Position_Changed>> ||
-        std::invocable<Func, TypedEvent<EventType::Window_Position_Changing>>;
+        invocable_r<Func, LRESULT, TypedEvent<EventType::Activate_App>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::Cancel_Mode>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::Child_Activate>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::Close>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::Compacting>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::Create>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::Destroy>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::Enable>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::Enter_Size_Move>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::Exit_Size_Move>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::Get_Icon>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::Get_Min_Max_Info>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::Input_Language_Change>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::Input_Language_Change_Request>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::Move>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::Moving>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::Nonclient_Activate>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::Nonclient_Calculate_Size>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::Nonclient_Create>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::Nonclient_Destroy>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::Null>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::QueryDragIcon>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::QueryOpen>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::Quit>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::ShowWindow>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::Size>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::Sizing>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::Style_Changed>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::Style_Changing>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::Theme_Changed>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::User_Changed>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::Window_Position_Changed>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::Window_Position_Changing>>;
 
     template<>
     struct TypedEvent<EventType::Activate_App> : public EventBase
@@ -475,22 +513,22 @@ export namespace MoWin
 
 #pragma endregion
 
-#pragma region Keyyboard Notificaiton Events
-    template<class Func>
+#pragma region Keyboard Notificaiton Events
+    export template<class Func>
     concept VisitableKeyboardNotifications =
-        std::invocable<Func, TypedEvent<EventType::Activate>> ||
-        std::invocable<Func, TypedEvent<EventType::Application_Command>> ||
-        std::invocable<Func, TypedEvent<EventType::Char>> ||
-        std::invocable<Func, TypedEvent<EventType::Dead_Char>> ||
-        std::invocable<Func, TypedEvent<EventType::Hotkey>> ||
-        std::invocable<Func, TypedEvent<EventType::Key_Down>> ||
-        std::invocable<Func, TypedEvent<EventType::Key_Up>> ||
-        std::invocable<Func, TypedEvent<EventType::Kill_Focus>> ||
-        std::invocable<Func, TypedEvent<EventType::Set_Focus>> ||
-        std::invocable<Func, TypedEvent<EventType::System_Dead_Char>> ||
-        std::invocable<Func, TypedEvent<EventType::System_Key_Down>> ||
-        std::invocable<Func, TypedEvent<EventType::System_Key_Up>> ||
-        std::invocable<Func, TypedEvent<EventType::Unicode_Char>>;
+        invocable_r<Func, LRESULT, TypedEvent<EventType::Activate>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::Application_Command>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::Char>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::Dead_Char>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::Hotkey>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::Key_Down>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::Key_Up>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::Kill_Focus>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::Set_Focus>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::System_Dead_Char>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::System_Key_Down>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::System_Key_Up>> ||
+        invocable_r<Func, LRESULT, TypedEvent<EventType::Unicode_Char>>;
 
     template<>
     struct TypedEvent<EventType::Activate> : public EventBase
@@ -525,16 +563,15 @@ export namespace MoWin
 
 #pragma endregion
 
-    template<class Func, EventType E>
+    export template<class Func, EventType E>
     concept VisitableEvent = std::invocable<Func, TypedEvent<E>>;
 
-    template<class Func>
+    export template<class Func>
     concept HasVisitableEvent = VisitableWindowNotifications<Func> ||
         VisitableKeyboardNotifications<Func>;
 
-
     template<EventType Type, class Func, std::invocable<Event> DefaultFunc>
-    LRESULT VisitEventImpl(Func&& visitor, Event&& event, DefaultFunc&& defaultFunc)
+    LRESULT VisitEventImpl(Func&& visitor, Event event, DefaultFunc&& defaultFunc)
     {
         if constexpr(VisitableEvent<Func, Type>)
         {
@@ -546,7 +583,7 @@ export namespace MoWin
         }
     }
 
-    template<class Func, std::invocable<Event> DefaultFunc>
+    export template<class Func, std::invocable<Event> DefaultFunc>
     LRESULT VisitEvent(Func&& visitor, Event&& event, DefaultFunc&& defaultFunc)
     {
         switch(event.type)
@@ -653,14 +690,15 @@ export namespace MoWin
             return defaultFunc(std::forward<Event>(event));
         }
     }
-}
 
-export namespace MoWin
-{
-    enum class WindowClassAtom : ATOM {};
+#pragma endregion
+
+#pragma region Window Class
+
+    export enum class WindowClassAtom : ATOM {};
 
     //https://docs.microsoft.com/en-us/windows/win32/winmsg/window-class-styles
-    enum class WindowClassStyle
+    export enum class WindowClassStyle
     {
         //Aligns the window's client area on a byte boundary (in the x direction). This style affects the width of the window and its horizontal placement on the display.
         Byte_Align_Client,
@@ -713,61 +751,62 @@ export namespace MoWin
 
     DEFINE_ENUM_FLAG_OPERATORS(WindowClassStyle);
 
-    template<class Ty>
+
+    export template<class Ty>
     concept HasProcedure = requires (Ty self, Event event)
     {
-        { self.operator()(event) } -> std::same_as<LRESULT>;
+        { self.operator()(event) } -> std::same_as<EventProcessed>;
     };
 
-    template<class Ty>
+    export template<class Ty>
     concept StyleDefined = requires()
     {
         { Ty::Style() } -> std::same_as<WindowClassStyle>;
     };
 
-    template<class Ty>
+    export template<class Ty>
     concept ExtraClassBytesDefined = requires()
     {
         { Ty::ExtraClassBytes() } -> std::same_as<int>;
     };
 
-    template<class Ty>
+    export template<class Ty>
     concept ExtraWindowBytesDefined = requires()
     {
         { Ty::ExtraWindowBytes() } -> std::same_as<int>;
     };
 
-    template<class Ty>
+    export template<class Ty>
     concept IconDefined = requires(HINSTANCE instance)
     {
         { Ty::Icon(instance) } -> std::same_as<HICON>;
     };
 
-    template<class Ty>
+    export template<class Ty>
     concept CursorDefined = requires(HINSTANCE instance)
     {
         { Ty::Cursor(instance) } -> std::same_as<HCURSOR>;
     };
 
-    template<class Ty>
+    export template<class Ty>
     concept BackgroundBrushDefined = requires()
     {
         { Ty::BackgroundBrush() } -> std::same_as<HBRUSH>;
     };
 
-    template<class Ty, class CharTy>
+    export template<class Ty, class CharTy>
     concept MenuDefined = requires()
     {
         { Ty::MenuName() } -> std::same_as<CharTy>;
     };
 
-    template<class Ty>
+    export template<class Ty>
     concept SmallIconDefined = requires(HINSTANCE instance)
     {
         { Ty::SmallIcon(instance) } -> std::same_as<HICON>;
     };
 
-    template<Platform P, CharacterSet C>
+    export template<class PlatformTrait>
     struct DefaultClass;
 
     struct DefaultClassCommon
@@ -781,11 +820,11 @@ export namespace MoWin
         static HICON SmallIcon(HINSTANCE instance) { return nullptr; }
     };
 
-    template<class Ty, class GlobalTrait>
+    template<class Ty, class PlatformTrait>
     struct WindowClassTraitsBase
     {
     public:
-        using platform_traits = GlobalTrait;
+        using platform_traits = PlatformTrait;
         using class_type = platform_traits::extended_class_type;
         using string_type = platform_traits::string_type;
 
@@ -815,48 +854,48 @@ export namespace MoWin
             if constexpr(StyleDefined<Ty>)
                 windowClass.style = static_cast<UINT>(Ty::Style());
             else
-                windowClass.style = static_cast<UINT>(DefaultClass<string_type>::Style());
+                windowClass.style = static_cast<UINT>(DefaultClass<platform_traits>::Style());
 
             windowClass.lpfnWndProc = &Procedure;
 
             if constexpr(ExtraClassBytesDefined<Ty>)
                 windowClass.cbClsExtra = Ty::ExtraClassBytes();
             else
-                windowClass.cbClsExtra = DefaultClass<string_type>::ExtraClassBytes();
+                windowClass.cbClsExtra = DefaultClass<platform_traits>::ExtraClassBytes();
 
             if constexpr(ExtraWindowBytesDefined<Ty>)
                 windowClass.cbWndExtra = Ty::ExtraWindowBytes();
             else
-                windowClass.cbWndExtra = DefaultClass<string_type>::ExtraWindowBytes();
+                windowClass.cbWndExtra = DefaultClass<platform_traits>::ExtraWindowBytes();
 
             windowClass.hInstance = m_instance;
 
             if constexpr(IconDefined<Ty>)
                 windowClass.hIcon = Ty::Icon(m_instance);
             else
-                windowClass.hIcon = DefaultClass<string_type>::Icon(m_instance);
+                windowClass.hIcon = DefaultClass<platform_traits>::Icon(m_instance);
 
             if constexpr(CursorDefined<Ty>)
                 windowClass.hCursor = Ty::Cursor(m_instance);
             else
-                windowClass.hCursor = DefaultClass<string_type>::Cursor(m_instance);
+                windowClass.hCursor = DefaultClass<platform_traits>::Cursor(m_instance);
 
             if constexpr(BackgroundBrushDefined<Ty>)
                 windowClass.hbrBackground = Ty::BackgroundBrush();
             else
-                windowClass.hbrBackground = DefaultClass<string_type>::BackgroundBrush();
+                windowClass.hbrBackground = DefaultClass<platform_traits>::BackgroundBrush();
 
             if constexpr(MenuDefined<Ty, string_type>)
                 windowClass.lpszMenuName = Ty::MenuName();
             else
-                windowClass.lpszMenuName = DefaultClass<string_type>::MenuName();
+                windowClass.lpszMenuName = DefaultClass<platform_traits>::MenuName();
 
             windowClass.lpszClassName = Ty::ClassName();
 
             if constexpr(SmallIconDefined<Ty>)
                 windowClass.hIconSm = Ty::SmallIcon(m_instance);
             else
-                windowClass.hIconSm = DefaultClass<string_type>::SmallIcon(m_instance);
+                windowClass.hIconSm = DefaultClass<platform_traits>::SmallIcon(m_instance);
 
             registered = platform_traits::RegisterClass(windowClass) != WindowClassAtom(0);
 
@@ -887,34 +926,52 @@ export namespace MoWin
 
         static LRESULT Procedure(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
-            if(uMsg == WM_NCCREATE)
+            switch(uMsg)
+            {
+            case WM_NCCREATE:
             {
                 m_instanceCount++;
                 typename platform_traits::window_create_struct_type* createStruct = std::bit_cast<typename platform_traits::window_create_struct_type*>(lParam);
                 platform_traits::SetWindowData(hwnd, GWLP_USERDATA, createStruct->lpCreateParams);
             }
-            if(uMsg == WM_NCDESTROY)
-            {
+                break;
+            case WM_NCDESTROY:
                 Unregister();
+                break;
             }
 
             Ty* self = platform_traits::template GetWindowData<Ty*>(hwnd, GWLP_USERDATA);
             auto defProc = [](Event e) { return platform_traits::DefaultProcedure(e); };
+
             if(self == nullptr)
             {
                 return defProc(Event{ hwnd, static_cast<EventType>(uMsg), wParam, lParam });
             }
-            return VisitEvent(*self, Event{ hwnd, static_cast<EventType>(uMsg), wParam, lParam }, *self);
-
+            else
+            {
+                if constexpr(HasVisitableEvent<Ty> && HasProcedure<Ty>)
+                {
+                    return (*self)(Event{ hwnd, static_cast<EventType>(uMsg), wParam, lParam })
+                        .MapUnprocessed([self, &defProc](Event&& e) { return VisitEvent(*self, std::forward<Event>(e), defProc); }, Event{ hwnd, static_cast<EventType>(uMsg), wParam, lParam });
+                }
+                else if constexpr(HasProcedure<Ty>)
+                {
+                    return (*self)(Event{ hwnd, static_cast<EventType>(uMsg), wParam, lParam });
+                }
+                else
+                {
+                    return VisitEvent(*self, Event{ hwnd, static_cast<EventType>(uMsg), wParam, lParam }, defProc);
+                }
+            }
         }
     };
 
     template<class Ty>
     struct WindowClassTraits;
-
+#pragma endregion
 
     //https://docs.microsoft.com/en-us/windows/win32/winmsg/window-styles
-    enum class WindowStyle : DWORD
+    export enum class WindowStyle : DWORD
     {
         //The window has a thin-line border.
         Border = WS_BORDER,
@@ -1003,7 +1060,7 @@ export namespace MoWin
 
     DEFINE_ENUM_FLAG_OPERATORS(WindowStyle);
 
-    enum class WindowStyleEx : DWORD
+    export enum class WindowStyleEx : DWORD
     {
         Accept_Files = WS_EX_ACCEPTFILES,
         App_Window = WS_EX_APPWINDOW,

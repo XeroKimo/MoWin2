@@ -40,7 +40,7 @@ struct TESTWindowClass
         return 0;
     }
 
-    LRESULT operator()(MoWin::Event event)
+    MoWin::EventProcessed operator()(MoWin::Event event)
     {
         switch(static_cast<UINT>(event.type))
         {
@@ -70,15 +70,17 @@ struct TESTWindowClass
         }
         break;
         case WM_DESTROY:
-            PostQuitMessage(0);
+            //PostQuitMessage(0);
             break;
         default:
             return DefWindowProc(event.window, static_cast<UINT>(event.type), event.wParam, event.lParam);
         }
-        return 0;
+        return MoWin::eventUnprocessed;
     }
 };
 
+static_assert(MoWin::HasVisitableEvent<TESTWindowClass>);
+static_assert(MoWin::HasProcedure<TESTWindowClass>);
 static_assert(MoWin::IsWindowClass<TESTWindowClass>);
 
 int APIENTRY wWinMain(_In_ HINSTANCE hInstance,

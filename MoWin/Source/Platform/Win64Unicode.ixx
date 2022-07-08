@@ -29,7 +29,7 @@ namespace MoWin
         concept IsWindowClassW = requires
     {
         { Ty::ClassName() } -> std::same_as<W64U::FileStringType>;
-    } && HasProcedure<Ty>;
+    } && (HasProcedure<Ty> || HasVisitableEvent<Ty>);
 
 
     namespace W64U
@@ -60,8 +60,8 @@ namespace MoWin
     export using UnicodePlatformTraits = PlatformTraits<W64U::filePlatform, W64U::fileCharacterSet>;
 #ifdef _UNICODE
 
-    export extern constexpr Platform defaultPlatform = W64U::filePlatform;
-    export extern constexpr CharacterSet characterSet = W64U::fileCharacterSet;
+    export inline constexpr Platform defaultPlatform = W64U::filePlatform;
+    export inline constexpr CharacterSet characterSet = W64U::fileCharacterSet;
 
     export template<class Ty>
         concept IsWindowClass = W64U::FileIsWindowClass<Ty>;
@@ -141,8 +141,8 @@ namespace MoWin
         }
     };
 
-    export template<>
-    struct DefaultClass<W64U::filePlatform, W64U::fileCharacterSet> : public DefaultClassCommon
+    template<>
+    struct DefaultClass<W64U::FilePlatformTraits> : public DefaultClassCommon
     {
         using string_type = W64U::FileStringType;
 
@@ -158,11 +158,11 @@ namespace MoWin
                 PostQuitMessage(0);
             }
 
-            return PlatformTraits<W64U::filePlatform, W64U::fileCharacterSet>::DefaultProcedure(event);
+            return W64U::FilePlatformTraits::DefaultProcedure(event);
         }
     };
 
-    export template<W64U::FileIsWindowClass Ty>
+    template<W64U::FileIsWindowClass Ty>
     struct WindowClassTraits<Ty> : public WindowClassTraitsBase<Ty, W64U::FilePlatformTraits>
     {
 
