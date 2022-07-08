@@ -12,10 +12,15 @@ class MainApp
 public:
   //Required
   static LPCSTR WindowTitle() { return "MainApp"; }
-  //Required, this replaces the window procedure
-  LRESULT operator()(MoWin::Event event) { return 0; }
-  //Required, a constructor whose first parameter is HWND, there can be extra parameters so long as HWND is the first parameter
-  MainApp(HWND hWnd){}
+  
+  //Requires either or both the following operator() overloads.
+  //operator()(MoWin::Event event) Is for legacy support, with a custom EventProcessed return type 
+  //which takes either a LRESULT or MoWin::eventUnprocessed. Unprocessed events will attempt
+  //to match with a specialized operator()(MoWin::Event::... event) if they exist, otherwise
+  //if there are absolutely no specialized operator()s, it is the equivalent of returning 0,
+  //if there are specialized operator() but there are no matches, it is whatever DefWindowProc() will return.
+  MoWin::EventProcessed operator()(MoWin::Event event) { return 0; }
+  LRESULT operator()(MoWin::Event::... event)
   
   //Optional
   static MoWin::WindowClassStyle Style();
@@ -26,9 +31,6 @@ public:
   static HBRUSH BackgroundBrush();
   static LPCSTR MenuName();
   static HICON SmallIcon(HINSTANCE instance);
-  //Optional, A operator() overload that will handle a specific event
-  //... just means there's a type alias defined in the Event class for specific events
-  LRESULT operator()(MoWin::Event::... event)
 };
 ```
-Once a class was defined, a window can now be created by doing the following `MoWin::Window<MainApp> window();` where the constructor has similar params to CreateWindow, and then extra params to initialize `<MainApp>` as the class passed in to the window is directly associated as the window class and contains an instance of one
+Once a class was defined, a window can now be created by doing the following `MoWin::Window<MainApp> window();` where the constructor has similar params to CreateWindow, and then extra params to initialize `<MainApp>` as the class passed in to the window is directly associated as the window class and contains an instance of one. The window class instance will first be initialized followed by the window, if the class instance requires the window handle for anything, they can get it as early as a NonClientCreate event
