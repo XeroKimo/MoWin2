@@ -49,7 +49,13 @@ export namespace MoWin
             m_windowHandle(std::move(other.m_windowHandle))
         {
             other.m_windowHandle = nullptr;
+            SetLastError(0);
             platform_traits::SetWindowData(m_windowHandle, GWLP_USERDATA, &m_data);
+
+            if(GetLastError() == ERROR_INVALID_WINDOW_HANDLE)
+            {
+                //Do nothing
+            }
         }
 
         WindowImpl& operator=(const WindowImpl& other) = delete;
@@ -58,7 +64,13 @@ export namespace MoWin
             m_windowHandle = std::move(other.m_windowHandle);
             other.m_windowHandle = nullptr;
             m_data = std::move(other.m_data);
+            SetLastError(0);
             platform_traits::SetWindowData(m_windowHandle, GWLP_USERDATA, &m_data);
+
+            if(GetLastError() == ERROR_INVALID_WINDOW_HANDLE)
+            {
+                //Do nothing
+            }
             return *this;
         }
 
@@ -99,6 +111,17 @@ export namespace MoWin
             return platform_traits::CreateWindow(extendedStyle, Ty::ClassName(), windowName, style, x, y, width, height, optionalParent, menu, hInstance, &m_data);
         }
     };
+
+    using EventA = EventImpl<MBCSPlatformTraits>;
+    using EventW = EventImpl<UnicodePlatformTraits>;
+    using Event = EventImpl<DefaultPlatformTraits>;
+
+    template<EventType Type>
+    using TypedEventA = TypedEventImpl<Type, MBCSPlatformTraits>;
+    template<EventType Type>
+    using TypedEventW = TypedEventImpl<Type, UnicodePlatformTraits>;
+    template<EventType Type>
+    using TypedEvent = TypedEventImpl<Type, DefaultPlatformTraits>;
 
     template<IsWindowClassA Ty>
     using WindowA = WindowImpl<Ty, MBCSPlatformTraits>;

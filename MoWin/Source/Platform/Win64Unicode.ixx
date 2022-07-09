@@ -22,14 +22,26 @@ namespace MoWin
         using FileStandardClassType = WNDCLASSW;
         using FileExtendedClassType = WNDCLASSEXW;
         using FileWindowCreateStruct = CREATESTRUCTW;
+
+        template<class Ty>
+        concept FileHasVisitableEvent = HasVisitableEventImpl<Ty, FilePlatformTraits>;
+
+        template<class Ty>
+        concept FileHasProcedure = HasProcedureImpl<Ty, FilePlatformTraits>;
     }
 
+
+    export template<class Ty>
+    concept HasVisitableEventW = W64U::FileHasVisitableEvent<Ty>;
+
+    export template<class Ty>
+    concept HasProcedureW = W64U::FileHasProcedure<Ty>;
 
     export template<class Ty>
         concept IsWindowClassW = requires
     {
         { Ty::ClassName() } -> std::same_as<W64U::FileStringType>;
-    } && (HasProcedure<Ty> || HasVisitableEvent<Ty>);
+    } && (HasProcedureW<Ty> || HasVisitableEventW<Ty>);
 
 
     namespace W64U
@@ -70,6 +82,12 @@ namespace MoWin
         concept IsFullWindowClass = W64U::FileIsFullWindowClass<Ty>;
 
     export using DefaultPlatformTraits = UnicodePlatformTraits;
+
+    export template<class Ty>
+    concept HasProcedure = W64U::FileHasProcedure<Ty>;
+
+    export template<class Ty>
+    concept HasVisitableEvent = W64U::FileHasVisitableEvent<Ty>;
 #endif
 #endif
 
@@ -104,7 +122,7 @@ namespace MoWin
             return DefWindowProcW(hwnd, uMsg, wParam, lParam);
         }
 
-        static LRESULT DefaultProcedure(Event event)
+        static LRESULT DefaultProcedure(EventImpl<W64U::FilePlatformTraits> event)
         {
             return DefaultProcedure(event.window, static_cast<UINT>(event.type), event.wParam, event.lParam);
         }
@@ -151,7 +169,7 @@ namespace MoWin
 
         DefaultClass(HWND hwnd) {}
 
-        static LRESULT Procedure(Event event)
+        static LRESULT Procedure(EventImpl<W64U::FilePlatformTraits> event)
         {
             if(static_cast<UINT>(event.type) == WM_DESTROY)
             {

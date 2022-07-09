@@ -92,13 +92,14 @@ namespace MoWin
         All = 255
     };
 
-    export template<EventType Type>
-    struct TypedEvent;
+    export template<EventType Type, class PlatformTrait>
+    struct TypedEventImpl;
 
-    export template<EventCatagoryType Type>
-    struct EventCategory;
+    export template<EventCatagoryType Type, class PlatformTrait>
+    struct EventCategoryImpl;
 
-    export struct EventBase
+    export template<class PlatformTrait>
+    struct EventBase
     {
         HWND window;
         EventType type;
@@ -106,11 +107,13 @@ namespace MoWin
         LPARAM lParam;
     };
 
-    export struct Event : public EventBase
+    export template<class PlatformTrait>
+    struct EventImpl : public EventBase<PlatformTrait>
     {
-        using KeyboardInputNotifications = EventCategory<EventCatagoryType::Keyboard_Notfications>;
-        using WindowNotifications = EventCategory<EventCatagoryType::Window_Notifications>;
-        using All = EventCategory<EventCatagoryType::All>;
+        using platform_traits = PlatformTrait;
+        using KeyboardInputNotifications = EventCategoryImpl<EventCatagoryType::Keyboard_Notfications, PlatformTrait>;
+        using WindowNotifications = EventCategoryImpl<EventCatagoryType::Window_Notifications, PlatformTrait>;
+        using All = EventCategoryImpl<EventCatagoryType::All, PlatformTrait>;
     };
 
     template<class Func, class RetVal, class... Args>
@@ -135,13 +138,13 @@ namespace MoWin
         EventProcessed(EventUnprocessed) : m_processedState(eventUnprocessed) {}
         EventProcessed(LRESULT result) : m_processedState(result) {}
 
-        template<invocable_r<EventProcessed, Event> Func>
-        EventProcessed MapUnprocessed(Func&& func, Event&& event)
+        template<class EventTy, invocable_r<EventProcessed, EventTy> Func>
+        EventProcessed MapUnprocessed(Func&& func, EventTy&& event)
         {
             if(std::holds_alternative<LRESULT>(m_processedState))
                 return *this;
             else
-                return func(std::forward<Event>(event));
+                return func(std::forward<EventTy>(event));
         }
 
         operator LRESULT() const
@@ -153,210 +156,229 @@ namespace MoWin
         }
     };
 
-#pragma region Event Categories
+#pragma region EventTy Categories
 
-    template<>
-    struct EventCategory<EventCatagoryType::Window_Notifications>
+    template<class PlatformTrait>
+    struct EventCategoryImpl<EventCatagoryType::Window_Notifications, PlatformTrait>
     {
-        using ActivateApp = TypedEvent<EventType::Activate_App>;
-        using CancelMode = TypedEvent<EventType::Cancel_Mode>;
-        using ChildActivate = TypedEvent<EventType::Child_Activate>;
-        using Close = TypedEvent<EventType::Close>;
-        using Compacting = TypedEvent<EventType::Compacting>;
-        using Create = TypedEvent<EventType::Create>;
-        using Destroy = TypedEvent<EventType::Destroy>;
-        using Enable = TypedEvent<EventType::Enable>;
-        using EnterSizeMove = TypedEvent<EventType::Enter_Size_Move>;
-        using ExitSizeMove = TypedEvent<EventType::Exit_Size_Move>;
-        using GetIcon = TypedEvent<EventType::Get_Icon>;
-        using GetMinMaxInfo = TypedEvent<EventType::Get_Min_Max_Info>;
-        using InputLanguageChange = TypedEvent<EventType::Input_Language_Change>;
-        using InputLanguageChangeRequest = TypedEvent<EventType::Input_Language_Change_Request>;
-        using Move = TypedEvent<EventType::Move>;
-        using Moving = TypedEvent<EventType::Moving>;
-        using NonclientActivate = TypedEvent<EventType::Nonclient_Activate>;
-        using NonclientCalculateSize = TypedEvent<EventType::Nonclient_Calculate_Size>;
-        using NonclientCreate = TypedEvent<EventType::Nonclient_Create>;
-        using NonclientDestroy = TypedEvent<EventType::Nonclient_Destroy>;
-        using Null = TypedEvent<EventType::Null>;
-        using QueryDragIcon = TypedEvent<EventType::QueryDragIcon>;
-        using QueryOpen = TypedEvent<EventType::QueryOpen>;
-        using Quit = TypedEvent<EventType::Quit>;
-        using ShowWindow = TypedEvent<EventType::ShowWindow>;
-        using Size = TypedEvent<EventType::Size>;
-        using Sizing = TypedEvent<EventType::Sizing>;
-        using StyleChanged = TypedEvent<EventType::Style_Changed>;
-        using StyleChanging = TypedEvent<EventType::Style_Changing>;
-        using ThemeChanged = TypedEvent<EventType::Theme_Changed>;
-        using UsedChanged = TypedEvent<EventType::User_Changed>;
-        using WindowPositonChanged = TypedEvent<EventType::Window_Position_Changed>;
-        using WindowPositionChanging = TypedEvent<EventType::Window_Position_Changing>;
+        using ActivateApp = TypedEventImpl<EventType::Activate_App, PlatformTrait>;
+        using CancelMode = TypedEventImpl<EventType::Cancel_Mode, PlatformTrait>;
+        using ChildActivate = TypedEventImpl<EventType::Child_Activate, PlatformTrait>;
+        using Close = TypedEventImpl<EventType::Close, PlatformTrait>;
+        using Compacting = TypedEventImpl<EventType::Compacting, PlatformTrait>;
+        using Create = TypedEventImpl<EventType::Create, PlatformTrait>;
+        using Destroy = TypedEventImpl<EventType::Destroy, PlatformTrait>;
+        using Enable = TypedEventImpl<EventType::Enable, PlatformTrait>;
+        using EnterSizeMove = TypedEventImpl<EventType::Enter_Size_Move, PlatformTrait>;
+        using ExitSizeMove = TypedEventImpl<EventType::Exit_Size_Move, PlatformTrait>;
+        using GetIcon = TypedEventImpl<EventType::Get_Icon, PlatformTrait>;
+        using GetMinMaxInfo = TypedEventImpl<EventType::Get_Min_Max_Info, PlatformTrait>;
+        using InputLanguageChange = TypedEventImpl<EventType::Input_Language_Change, PlatformTrait>;
+        using InputLanguageChangeRequest = TypedEventImpl<EventType::Input_Language_Change_Request, PlatformTrait>;
+        using Move = TypedEventImpl<EventType::Move, PlatformTrait>;
+        using Moving = TypedEventImpl<EventType::Moving, PlatformTrait>;
+        using NonclientActivate = TypedEventImpl<EventType::Nonclient_Activate, PlatformTrait>;
+        using NonclientCalculateSize = TypedEventImpl<EventType::Nonclient_Calculate_Size, PlatformTrait>;
+        using NonclientCreate = TypedEventImpl<EventType::Nonclient_Create, PlatformTrait>;
+        using NonclientDestroy = TypedEventImpl<EventType::Nonclient_Destroy, PlatformTrait>;
+        using Null = TypedEventImpl<EventType::Null, PlatformTrait>;
+        using QueryDragIcon = TypedEventImpl<EventType::QueryDragIcon, PlatformTrait>;
+        using QueryOpen = TypedEventImpl<EventType::QueryOpen, PlatformTrait>;
+        using Quit = TypedEventImpl<EventType::Quit, PlatformTrait>;
+        using ShowWindow = TypedEventImpl<EventType::ShowWindow, PlatformTrait>;
+        using Size = TypedEventImpl<EventType::Size, PlatformTrait>;
+        using Sizing = TypedEventImpl<EventType::Sizing, PlatformTrait>;
+        using StyleChanged = TypedEventImpl<EventType::Style_Changed, PlatformTrait>;
+        using StyleChanging = TypedEventImpl<EventType::Style_Changing, PlatformTrait>;
+        using ThemeChanged = TypedEventImpl<EventType::Theme_Changed, PlatformTrait>;
+        using UsedChanged = TypedEventImpl<EventType::User_Changed, PlatformTrait>;
+        using WindowPositonChanged = TypedEventImpl<EventType::Window_Position_Changed, PlatformTrait>;
+        using WindowPositionChanging = TypedEventImpl<EventType::Window_Position_Changing, PlatformTrait>;
     };
 
-    template<>
-    struct EventCategory<EventCatagoryType::Keyboard_Notfications>
+    template<class PlatformTrait>
+    struct EventCategoryImpl<EventCatagoryType::Keyboard_Notfications, PlatformTrait>
     {
-        using Activate = TypedEvent<EventType::Activate>;
-        using ApplicationCommand = TypedEvent<EventType::Application_Command>;
-        using Char = TypedEvent<EventType::Char>;
-        using DeadChar = TypedEvent<EventType::Dead_Char>;
-        using Hotkey = TypedEvent<EventType::Hotkey>;
-        using KeyDown = TypedEvent<EventType::Key_Down>;
-        using KeyUp = TypedEvent<EventType::Key_Up>;
-        using KillFocus = TypedEvent<EventType::Kill_Focus>;
-        using SetFocus = TypedEvent<EventType::Set_Focus>;
-        using SystemDeadChar = TypedEvent<EventType::System_Dead_Char>;
-        using SystemKeyDown = TypedEvent<EventType::System_Key_Down>;
-        using SystemKeyUp = TypedEvent<EventType::System_Key_Up>;
-        using UnicodeChar = TypedEvent<EventType::Unicode_Char>;
+        using Activate = TypedEventImpl<EventType::Activate, PlatformTrait>;
+        using ApplicationCommand = TypedEventImpl<EventType::Application_Command, PlatformTrait>;
+        using Char = TypedEventImpl<EventType::Char, PlatformTrait>;
+        using DeadChar = TypedEventImpl<EventType::Dead_Char, PlatformTrait>;
+        using Hotkey = TypedEventImpl<EventType::Hotkey, PlatformTrait>;
+        using KeyDown = TypedEventImpl<EventType::Key_Down, PlatformTrait>;
+        using KeyUp = TypedEventImpl<EventType::Key_Up, PlatformTrait>;
+        using KillFocus = TypedEventImpl<EventType::Kill_Focus, PlatformTrait>;
+        using SetFocus = TypedEventImpl<EventType::Set_Focus, PlatformTrait>;
+        using SystemDeadChar = TypedEventImpl<EventType::System_Dead_Char, PlatformTrait>;
+        using SystemKeyDown = TypedEventImpl<EventType::System_Key_Down, PlatformTrait>;
+        using SystemKeyUp = TypedEventImpl<EventType::System_Key_Up, PlatformTrait>;
+        using UnicodeChar = TypedEventImpl<EventType::Unicode_Char, PlatformTrait>;
     };
 
 
-    template<>
-    struct EventCategory<EventCatagoryType::All>
+    template<class PlatformTrait>
+    struct EventCategoryImpl<EventCatagoryType::All, PlatformTrait>
     {
         //Window notification events
-        using ActivateApp = TypedEvent<EventType::Activate_App>;
-        using CancelMode = TypedEvent<EventType::Cancel_Mode>;
-        using ChildActivate = TypedEvent<EventType::Child_Activate>;
-        using Close = TypedEvent<EventType::Close>;
-        using Compacting = TypedEvent<EventType::Compacting>;
-        using Create = TypedEvent<EventType::Create>;
-        using Destroy = TypedEvent<EventType::Destroy>;
-        using Enable = TypedEvent<EventType::Enable>;
-        using EnterSizeMove = TypedEvent<EventType::Enter_Size_Move>;
-        using ExitSizeMove = TypedEvent<EventType::Exit_Size_Move>;
-        using GetIcon = TypedEvent<EventType::Get_Icon>;
-        using GetMinMaxInfo = TypedEvent<EventType::Get_Min_Max_Info>;
-        using InputLanguageChange = TypedEvent<EventType::Input_Language_Change>;
-        using InputLanguageChangeRequest = TypedEvent<EventType::Input_Language_Change_Request>;
-        using Move = TypedEvent<EventType::Move>;
-        using Moving = TypedEvent<EventType::Moving>;
-        using NonclientActivate = TypedEvent<EventType::Nonclient_Activate>;
-        using NonclientCalculateSize = TypedEvent<EventType::Nonclient_Calculate_Size>;
-        using NonclientCreate = TypedEvent<EventType::Nonclient_Create>;
-        using NonclientDestroy = TypedEvent<EventType::Nonclient_Destroy>;
-        using Null = TypedEvent<EventType::Null>;
-        using QueryDragIcon = TypedEvent<EventType::QueryDragIcon>;
-        using QueryOpen = TypedEvent<EventType::QueryOpen>;
-        using Quit = TypedEvent<EventType::Quit>;
-        using ShowWindow = TypedEvent<EventType::ShowWindow>;
-        using Size = TypedEvent<EventType::Size>;
-        using Sizing = TypedEvent<EventType::Sizing>;
-        using StyleChanged = TypedEvent<EventType::Style_Changed>;
-        using StyleChanging = TypedEvent<EventType::Style_Changing>;
-        using ThemeChanged = TypedEvent<EventType::Theme_Changed>;
-        using UsedChanged = TypedEvent<EventType::User_Changed>;
-        using WindowPosChanged = TypedEvent<EventType::Window_Position_Changed>;
-        using WindowPosChanging = TypedEvent<EventType::Window_Position_Changing>;
+        using ActivateApp = TypedEventImpl<EventType::Activate_App, PlatformTrait>;
+        using CancelMode = TypedEventImpl<EventType::Cancel_Mode, PlatformTrait>;
+        using ChildActivate = TypedEventImpl<EventType::Child_Activate, PlatformTrait>;
+        using Close = TypedEventImpl<EventType::Close, PlatformTrait>;
+        using Compacting = TypedEventImpl<EventType::Compacting, PlatformTrait>;
+        using Create = TypedEventImpl<EventType::Create, PlatformTrait>;
+        using Destroy = TypedEventImpl<EventType::Destroy, PlatformTrait>;
+        using Enable = TypedEventImpl<EventType::Enable, PlatformTrait>;
+        using EnterSizeMove = TypedEventImpl<EventType::Enter_Size_Move, PlatformTrait>;
+        using ExitSizeMove = TypedEventImpl<EventType::Exit_Size_Move, PlatformTrait>;
+        using GetIcon = TypedEventImpl<EventType::Get_Icon, PlatformTrait>;
+        using GetMinMaxInfo = TypedEventImpl<EventType::Get_Min_Max_Info, PlatformTrait>;
+        using InputLanguageChange = TypedEventImpl<EventType::Input_Language_Change, PlatformTrait>;
+        using InputLanguageChangeRequest = TypedEventImpl<EventType::Input_Language_Change_Request, PlatformTrait>;
+        using Move = TypedEventImpl<EventType::Move, PlatformTrait>;
+        using Moving = TypedEventImpl<EventType::Moving, PlatformTrait>;
+        using NonclientActivate = TypedEventImpl<EventType::Nonclient_Activate, PlatformTrait>;
+        using NonclientCalculateSize = TypedEventImpl<EventType::Nonclient_Calculate_Size, PlatformTrait>;
+        using NonclientCreate = TypedEventImpl<EventType::Nonclient_Create, PlatformTrait>;
+        using NonclientDestroy = TypedEventImpl<EventType::Nonclient_Destroy, PlatformTrait>;
+        using Null = TypedEventImpl<EventType::Null, PlatformTrait>;
+        using QueryDragIcon = TypedEventImpl<EventType::QueryDragIcon, PlatformTrait>;
+        using QueryOpen = TypedEventImpl<EventType::QueryOpen, PlatformTrait>;
+        using Quit = TypedEventImpl<EventType::Quit, PlatformTrait>;
+        using ShowWindow = TypedEventImpl<EventType::ShowWindow, PlatformTrait>;
+        using Size = TypedEventImpl<EventType::Size, PlatformTrait>;
+        using Sizing = TypedEventImpl<EventType::Sizing, PlatformTrait>;
+        using StyleChanged = TypedEventImpl<EventType::Style_Changed, PlatformTrait>;
+        using StyleChanging = TypedEventImpl<EventType::Style_Changing, PlatformTrait>;
+        using ThemeChanged = TypedEventImpl<EventType::Theme_Changed, PlatformTrait>;
+        using UsedChanged = TypedEventImpl<EventType::User_Changed, PlatformTrait>;
+        using WindowPosChanged = TypedEventImpl<EventType::Window_Position_Changed, PlatformTrait>;
+        using WindowPosChanging = TypedEventImpl<EventType::Window_Position_Changing, PlatformTrait>;
 
         //Keyboard Input Notifications events
-        using Activate = TypedEvent<EventType::Activate>;
-        using ApplicationCommand = TypedEvent<EventType::Application_Command>;
-        using Char = TypedEvent<EventType::Char>;
-        using DeadChar = TypedEvent<EventType::Dead_Char>;
-        using Hotkey = TypedEvent<EventType::Hotkey>;
-        using KeyDown = TypedEvent<EventType::Key_Down>;
-        using KeyUp = TypedEvent<EventType::Key_Up>;
-        using KillFocus = TypedEvent<EventType::Kill_Focus>;
-        using SetFocus = TypedEvent<EventType::Set_Focus>;
-        using SystemDeadChar = TypedEvent<EventType::System_Dead_Char>;
-        using SystemKeyDown = TypedEvent<EventType::System_Key_Down>;
-        using SystemKeyUp = TypedEvent<EventType::System_Key_Up>;
-        using UnicodeChar = TypedEvent<EventType::Unicode_Char>;
+        using Activate = TypedEventImpl<EventType::Activate, PlatformTrait>;
+        using ApplicationCommand = TypedEventImpl<EventType::Application_Command, PlatformTrait>;
+        using Char = TypedEventImpl<EventType::Char, PlatformTrait>;
+        using DeadChar = TypedEventImpl<EventType::Dead_Char, PlatformTrait>;
+        using Hotkey = TypedEventImpl<EventType::Hotkey, PlatformTrait>;
+        using KeyDown = TypedEventImpl<EventType::Key_Down, PlatformTrait>;
+        using KeyUp = TypedEventImpl<EventType::Key_Up, PlatformTrait>;
+        using KillFocus = TypedEventImpl<EventType::Kill_Focus, PlatformTrait>;
+        using SetFocus = TypedEventImpl<EventType::Set_Focus, PlatformTrait>;
+        using SystemDeadChar = TypedEventImpl<EventType::System_Dead_Char, PlatformTrait>;
+        using SystemKeyDown = TypedEventImpl<EventType::System_Key_Down, PlatformTrait>;
+        using SystemKeyUp = TypedEventImpl<EventType::System_Key_Up, PlatformTrait>;
+        using UnicodeChar = TypedEventImpl<EventType::Unicode_Char, PlatformTrait>;
     };
 #pragma endregion
 
 #pragma region Window Notification Events
 
-    export template<class Func>
+    export template<class Func, class PlatformTrait>
     concept VisitableWindowNotifications =
-        invocable_r<Func, LRESULT, TypedEvent<EventType::Activate_App>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::Cancel_Mode>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::Child_Activate>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::Close>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::Compacting>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::Create>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::Destroy>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::Enable>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::Enter_Size_Move>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::Exit_Size_Move>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::Get_Icon>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::Get_Min_Max_Info>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::Input_Language_Change>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::Input_Language_Change_Request>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::Move>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::Moving>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::Nonclient_Activate>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::Nonclient_Calculate_Size>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::Nonclient_Create>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::Nonclient_Destroy>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::Null>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::QueryDragIcon>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::QueryOpen>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::Quit>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::ShowWindow>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::Size>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::Sizing>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::Style_Changed>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::Style_Changing>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::Theme_Changed>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::User_Changed>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::Window_Position_Changed>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::Window_Position_Changing>>;
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::Activate_App, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::Cancel_Mode, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::Child_Activate, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::Close, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::Compacting, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::Create, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::Destroy, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::Enable, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::Enter_Size_Move, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::Exit_Size_Move, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::Get_Icon, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::Get_Min_Max_Info, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::Input_Language_Change, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::Input_Language_Change_Request, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::Move, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::Moving, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::Nonclient_Activate, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::Nonclient_Calculate_Size, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::Nonclient_Create, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::Nonclient_Destroy, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::Null, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::QueryDragIcon, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::QueryOpen, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::Quit, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::ShowWindow, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::Size, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::Sizing, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::Style_Changed, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::Style_Changing, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::Theme_Changed, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::User_Changed, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::Window_Position_Changed, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::Window_Position_Changing, PlatformTrait>>;
 
-    template<>
-    struct TypedEvent<EventType::Activate_App> : public EventBase
+    template<class PlatformTrait>
+    struct TypedEventImpl<EventType::Activate_App, PlatformTrait> : public EventBase<PlatformTrait>
     {
+        using EventBase<PlatformTrait>::window;
+        using EventBase<PlatformTrait>::type;
+        using EventBase<PlatformTrait>::wParam;
+        using EventBase<PlatformTrait>::lParam;
+
         bool Activated() const { return wParam; }
         DWORD ThreadID() const { return static_cast<DWORD>(lParam); }
     };
-    template<>
-    struct TypedEvent<EventType::Cancel_Mode> : public EventBase
+    template<class PlatformTrait>
+    struct TypedEventImpl<EventType::Cancel_Mode, PlatformTrait> : public EventBase<PlatformTrait>
     {
     };
-    template<>
-    struct TypedEvent<EventType::Child_Activate> : public EventBase
+    template<class PlatformTrait>
+    struct TypedEventImpl<EventType::Child_Activate, PlatformTrait> : public EventBase<PlatformTrait>
     {
     };
-    template<>
-    struct TypedEvent<EventType::Close> : public EventBase
+    template<class PlatformTrait>
+    struct TypedEventImpl<EventType::Close, PlatformTrait> : public EventBase<PlatformTrait>
     {
     };
-    template<>
-    struct TypedEvent<EventType::Compacting> : public EventBase
+    template<class PlatformTrait>
+    struct TypedEventImpl<EventType::Compacting, PlatformTrait> : public EventBase<PlatformTrait>
     {
     };
-    template<>
-    struct TypedEvent<EventType::Create> : public EventBase
+    template<class PlatformTrait>
+    struct TypedEventImpl<EventType::Create, PlatformTrait> : public EventBase<PlatformTrait>
     {
-        template<Platform P, CharacterSet C>
+        using EventBase<PlatformTrait>::window;
+        using EventBase<PlatformTrait>::type;
+        using EventBase<PlatformTrait>::wParam;
+        using EventBase<PlatformTrait>::lParam;
+
         auto CreateParams() const
         {
-            return (*std::bit_cast<typename PlatformTraits<P, C>::window_create_struct_type*>(lParam));
+            return (*std::bit_cast<typename PlatformTrait::window_create_struct_type*>(lParam));
         }
     };
-    template<>
-    struct TypedEvent<EventType::Destroy> : public EventBase
+    template<class PlatformTrait>
+    struct TypedEventImpl<EventType::Destroy, PlatformTrait> : public EventBase<PlatformTrait>
     {
 
     };
-    template<>
-    struct TypedEvent<EventType::Enable> : public EventBase
+    template<class PlatformTrait>
+    struct TypedEventImpl<EventType::Enable, PlatformTrait> : public EventBase<PlatformTrait>
     {
+        using EventBase<PlatformTrait>::window;
+        using EventBase<PlatformTrait>::type;
+        using EventBase<PlatformTrait>::wParam;
+        using EventBase<PlatformTrait>::lParam;
+
         bool Enabled() const { return wParam; }
     };
-    template<>
-    struct TypedEvent<EventType::Enter_Size_Move> : public EventBase
+    template<class PlatformTrait>
+    struct TypedEventImpl<EventType::Enter_Size_Move, PlatformTrait> : public EventBase<PlatformTrait>
     {
     };
-    template<>
-    struct TypedEvent<EventType::Exit_Size_Move> : public EventBase
+    template<class PlatformTrait>
+    struct TypedEventImpl<EventType::Exit_Size_Move, PlatformTrait> : public EventBase<PlatformTrait>
     {
     };
-    template<>
-    struct TypedEvent<EventType::Get_Icon> : public EventBase
+    template<class PlatformTrait>
+    struct TypedEventImpl<EventType::Get_Icon, PlatformTrait> : public EventBase<PlatformTrait>
     {
+        using EventBase<PlatformTrait>::window;
+        using EventBase<PlatformTrait>::type;
+        using EventBase<PlatformTrait>::wParam;
+        using EventBase<PlatformTrait>::lParam;
+
         enum class IconSize
         {
             Small = 0,
@@ -367,93 +389,142 @@ namespace MoWin
         IconSize Size() const { return static_cast<IconSize>(wParam); }
         WORD DPI() const { return static_cast<WORD>(lParam); }
     };
-    template<>
-    struct TypedEvent<EventType::Get_Min_Max_Info> : public EventBase
+    template<class PlatformTrait>
+    struct TypedEventImpl<EventType::Get_Min_Max_Info, PlatformTrait> : public EventBase<PlatformTrait>
     {
+        using EventBase<PlatformTrait>::window;
+        using EventBase<PlatformTrait>::type;
+        using EventBase<PlatformTrait>::wParam;
+        using EventBase<PlatformTrait>::lParam;
+
         MINMAXINFO& MinMaxInfo() const { return *std::bit_cast<MINMAXINFO*>(lParam); }
     };
-    template<>
-    struct TypedEvent<EventType::Input_Language_Change> : public EventBase
+    template<class PlatformTrait>
+    struct TypedEventImpl<EventType::Input_Language_Change, PlatformTrait> : public EventBase<PlatformTrait>
     {
+        using EventBase<PlatformTrait>::window;
+        using EventBase<PlatformTrait>::type;
+        using EventBase<PlatformTrait>::wParam;
+        using EventBase<PlatformTrait>::lParam;
+
         WPARAM CodePage() const { return wParam; }
         WORD LanguageIdentifier() const { return LOWORD(lParam); }
         WORD DeviceHandle() const { return HIWORD(lParam); }
     };
-    template<>
-    struct TypedEvent<EventType::Input_Language_Change_Request> : public EventBase
+    template<class PlatformTrait>
+    struct TypedEventImpl<EventType::Input_Language_Change_Request, PlatformTrait> : public EventBase<PlatformTrait>
     {
+        using EventBase<PlatformTrait>::window;
+        using EventBase<PlatformTrait>::type;
+        using EventBase<PlatformTrait>::wParam;
+        using EventBase<PlatformTrait>::lParam;
+
         bool IsChangeBackward() const { return wParam & INPUTLANGCHANGE_BACKWARD; }
         bool IsChangeForward() const { return wParam & INPUTLANGCHANGE_FORWARD; }
         bool IsSystemCharacterSet() const { return wParam & INPUTLANGCHANGE_SYSCHARSET; }
         WORD LanguageIdentifier() const { return LOWORD(lParam); }
         WORD DeviceHandle() const { return HIWORD(lParam); }
     };
-    template<>
-    struct TypedEvent<EventType::Move> : public EventBase
+    template<class PlatformTrait>
+    struct TypedEventImpl<EventType::Move, PlatformTrait> : public EventBase<PlatformTrait>
     {
+        using EventBase<PlatformTrait>::window;
+        using EventBase<PlatformTrait>::type;
+        using EventBase<PlatformTrait>::wParam;
+        using EventBase<PlatformTrait>::lParam;
+
         WORD Left() { return LOWORD(lParam); }
         WORD Top() { return HIWORD(lParam); }
     };
-    template<>
-    struct TypedEvent<EventType::Moving> : public EventBase
+    template<class PlatformTrait>
+    struct TypedEventImpl<EventType::Moving, PlatformTrait> : public EventBase<PlatformTrait>
     {
+        using EventBase<PlatformTrait>::window;
+        using EventBase<PlatformTrait>::type;
+        using EventBase<PlatformTrait>::wParam;
+        using EventBase<PlatformTrait>::lParam;
+
         RECT& Rect() const { return *std::bit_cast<RECT*>(lParam); }
     };
-    template<>
-    struct TypedEvent<EventType::Nonclient_Activate> : public EventBase
+    template<class PlatformTrait>
+    struct TypedEventImpl<EventType::Nonclient_Activate, PlatformTrait> : public EventBase<PlatformTrait>
     {
+        using EventBase<PlatformTrait>::window;
+        using EventBase<PlatformTrait>::type;
+        using EventBase<PlatformTrait>::wParam;
+        using EventBase<PlatformTrait>::lParam;
+
         bool Active() const { return wParam; }
         bool RedrawWindow() const { return lParam != -1; }
         //TODO: Figure out the how to interpret the update region of the non-client area using the lParam https://docs.microsoft.com/en-us/windows/win32/winmsg/wm-ncactivate
     };
-    template<>
-    struct TypedEvent<EventType::Nonclient_Calculate_Size> : public EventBase
+    template<class PlatformTrait>
+    struct TypedEventImpl<EventType::Nonclient_Calculate_Size, PlatformTrait> : public EventBase<PlatformTrait>
     {
+        using EventBase<PlatformTrait>::window;
+        using EventBase<PlatformTrait>::type;
+        using EventBase<PlatformTrait>::wParam;
+        using EventBase<PlatformTrait>::lParam;
+
         //bool
         NCCALCSIZE_PARAMS& Params() const { return *std::bit_cast<NCCALCSIZE_PARAMS*>(lParam); }
         RECT& Rect() const { return *std::bit_cast<RECT*>(lParam); }
     };
-    template<>
-    struct TypedEvent<EventType::Nonclient_Create> : public EventBase
+    template<class PlatformTrait>
+    struct TypedEventImpl<EventType::Nonclient_Create, PlatformTrait> : public EventBase<PlatformTrait>
     {
-        template<Platform P, CharacterSet C>
+        using EventBase<PlatformTrait>::window;
+        using EventBase<PlatformTrait>::type;
+        using EventBase<PlatformTrait>::wParam;
+        using EventBase<PlatformTrait>::lParam;
+
         auto CreateParams() const
         {
-            return (*std::bit_cast<typename PlatformTraits<P, C>::window_create_struct_type*>(lParam));
+            return (*std::bit_cast<typename PlatformTrait::window_create_struct_type*>(lParam));
         }
     };
-    template<>
-    struct TypedEvent<EventType::Nonclient_Destroy> : public EventBase
+    template<class PlatformTrait>
+    struct TypedEventImpl<EventType::Nonclient_Destroy, PlatformTrait> : public EventBase<PlatformTrait>
     {
     };
-    template<>
-    struct TypedEvent<EventType::Null> : public EventBase
+    template<class PlatformTrait>
+    struct TypedEventImpl<EventType::Null, PlatformTrait> : public EventBase<PlatformTrait>
     {
     };
-    template<>
-    struct TypedEvent<EventType::QueryDragIcon> : public EventBase
+    template<class PlatformTrait>
+    struct TypedEventImpl<EventType::QueryDragIcon, PlatformTrait> : public EventBase<PlatformTrait>
     {
     };
-    template<>
-    struct TypedEvent<EventType::QueryOpen> : public EventBase
+    template<class PlatformTrait>
+    struct TypedEventImpl<EventType::QueryOpen, PlatformTrait> : public EventBase<PlatformTrait>
     {
     };
-    template<>
-    struct TypedEvent<EventType::Quit> : public EventBase
+    template<class PlatformTrait>
+    struct TypedEventImpl<EventType::Quit, PlatformTrait> : public EventBase<PlatformTrait>
     {
     };
-    template<>
-    struct TypedEvent<EventType::ShowWindow> : public EventBase
+    template<class PlatformTrait>
+    struct TypedEventImpl<EventType::ShowWindow, PlatformTrait> : public EventBase<PlatformTrait>
     {
+        using EventBase<PlatformTrait>::window;
+        using EventBase<PlatformTrait>::type;
+        using EventBase<PlatformTrait>::wParam;
+        using EventBase<PlatformTrait>::lParam;
+
         bool Shown() const { return wParam; }
         bool ParentClosing() const { return lParam == SW_PARENTCLOSING; }
         bool OtherZoom() const { return lParam == SW_OTHERZOOM; }
         bool ParentOpening() const { return lParam == SW_PARENTOPENING; }
         bool OtherUnzoom() const { return lParam == SW_OTHERUNZOOM; }
     };
-    template<>
-    struct TypedEvent<EventType::Size> : public EventBase
+    template<class PlatformTrait>
+    struct TypedEventImpl<EventType::Size, PlatformTrait> : public EventBase<PlatformTrait>
     {
+        using EventBase<PlatformTrait>::window;
+        using EventBase<PlatformTrait>::type;
+        using EventBase<PlatformTrait>::wParam;
+        using EventBase<PlatformTrait>::lParam;
+
         bool Restored() const { return wParam == SIZE_RESTORED; }
         bool Minimized() const { return wParam == SIZE_MINIMIZED; }
         bool Maximized() const { return wParam == SIZE_MAXIMIZED; }
@@ -463,9 +534,14 @@ namespace MoWin
         WORD Width() const { return LOWORD(lParam); }
         WORD Height() const { return HIWORD(lParam); }
     };
-    template<>
-    struct TypedEvent<EventType::Sizing> : public EventBase
+    template<class PlatformTrait>
+    struct TypedEventImpl<EventType::Sizing, PlatformTrait> : public EventBase<PlatformTrait>
     {
+        using EventBase<PlatformTrait>::window;
+        using EventBase<PlatformTrait>::type;
+        using EventBase<PlatformTrait>::wParam;
+        using EventBase<PlatformTrait>::lParam;
+
         enum class ResizeEdge
         {
             Left = WMSZ_LEFT,
@@ -480,59 +556,84 @@ namespace MoWin
         ResizeEdge SelectedEdge() const { return static_cast<ResizeEdge>(wParam); }
         RECT& Rect() const { return *std::bit_cast<RECT*>(lParam); }
     };
-    template<>
-    struct TypedEvent<EventType::Style_Changed> : public EventBase
+    template<class PlatformTrait>
+    struct TypedEventImpl<EventType::Style_Changed, PlatformTrait> : public EventBase<PlatformTrait>
     {
+        using EventBase<PlatformTrait>::window;
+        using EventBase<PlatformTrait>::type;
+        using EventBase<PlatformTrait>::wParam;
+        using EventBase<PlatformTrait>::lParam;
+
         bool IsExtendedStyle() const { return wParam == GWL_EXSTYLE; }
         const STYLESTRUCT& Data() const { return *std::bit_cast<const STYLESTRUCT*>(lParam); }
     };
-    template<>
-    struct TypedEvent<EventType::Style_Changing> : public EventBase
+    template<class PlatformTrait>
+    struct TypedEventImpl<EventType::Style_Changing, PlatformTrait> : public EventBase<PlatformTrait>
     {
+        using EventBase<PlatformTrait>::window;
+        using EventBase<PlatformTrait>::type;
+        using EventBase<PlatformTrait>::wParam;
+        using EventBase<PlatformTrait>::lParam;
+
         bool IsExtendedStyle() const { return wParam == GWL_EXSTYLE; }
         const STYLESTRUCT& Data() const { return *std::bit_cast<const STYLESTRUCT*>(lParam); }
     };
-    template<>
-    struct TypedEvent<EventType::Theme_Changed> : public EventBase
+    template<class PlatformTrait>
+    struct TypedEventImpl<EventType::Theme_Changed, PlatformTrait> : public EventBase<PlatformTrait>
     {
     };
-    template<>
-    struct TypedEvent<EventType::User_Changed> : public EventBase
+    template<class PlatformTrait>
+    struct TypedEventImpl<EventType::User_Changed, PlatformTrait> : public EventBase<PlatformTrait>
     {
     };
-    template<>
-    struct TypedEvent<EventType::Window_Position_Changed> : public EventBase
+    template<class PlatformTrait>
+    struct TypedEventImpl<EventType::Window_Position_Changed, PlatformTrait> : public EventBase<PlatformTrait>
     {
+        using EventBase<PlatformTrait>::window;
+        using EventBase<PlatformTrait>::type;
+        using EventBase<PlatformTrait>::wParam;
+        using EventBase<PlatformTrait>::lParam;
+
         WINDOWPOS& Data() const { return *std::bit_cast<WINDOWPOS*>(lParam); }
     };
-    template<>
-    struct TypedEvent<EventType::Window_Position_Changing> : public EventBase
+    template<class PlatformTrait>
+    struct TypedEventImpl<EventType::Window_Position_Changing, PlatformTrait> : public EventBase<PlatformTrait>
     {
+        using EventBase<PlatformTrait>::window;
+        using EventBase<PlatformTrait>::type;
+        using EventBase<PlatformTrait>::wParam;
+        using EventBase<PlatformTrait>::lParam;
+
         WINDOWPOS& Data() const { return *std::bit_cast<WINDOWPOS*>(lParam); }
     };
 
 #pragma endregion
 
 #pragma region Keyboard Notificaiton Events
-    export template<class Func>
+    export template<class Func, class PlatformTrait>
     concept VisitableKeyboardNotifications =
-        invocable_r<Func, LRESULT, TypedEvent<EventType::Activate>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::Application_Command>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::Char>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::Dead_Char>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::Hotkey>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::Key_Down>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::Key_Up>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::Kill_Focus>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::Set_Focus>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::System_Dead_Char>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::System_Key_Down>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::System_Key_Up>> ||
-        invocable_r<Func, LRESULT, TypedEvent<EventType::Unicode_Char>>;
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::Activate, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::Application_Command, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::Char, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::Dead_Char, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::Hotkey, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::Key_Down, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::Key_Up, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::Kill_Focus, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::Set_Focus, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::System_Dead_Char, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::System_Key_Down, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::System_Key_Up, PlatformTrait>> ||
+        invocable_r<Func, LRESULT, TypedEventImpl<EventType::Unicode_Char, PlatformTrait>>;
 
-    template<>
-    struct TypedEvent<EventType::Activate> : public EventBase
+    template<class PlatformTrait>
+    struct TypedEventImpl<EventType::Activate, PlatformTrait> : public EventBase<PlatformTrait>
     {
+        using EventBase<PlatformTrait>::window;
+        using EventBase<PlatformTrait>::type;
+        using EventBase<PlatformTrait>::wParam;
+        using EventBase<PlatformTrait>::lParam;
+
         bool Inactive() const { return wParam == WA_INACTIVE; }
         bool Active() const { return wParam == WA_ACTIVE; }
         bool ClickActive() const { return wParam == WA_CLICKACTIVE; }
@@ -542,152 +643,157 @@ namespace MoWin
         //If Active() or ClickActive(), OtherWindow() is the handle to the window being deactivated. This handle can be NULL.
         HWND OtherWindow() const { return std::bit_cast<HWND>(lParam); }
     };
-    template<>
-    struct TypedEvent<EventType::Application_Command> : public EventBase
+    template<class PlatformTrait>
+    struct TypedEventImpl<EventType::Application_Command, PlatformTrait> : public EventBase<PlatformTrait>
     {
+        using EventBase<PlatformTrait>::window;
+        using EventBase<PlatformTrait>::type;
+        using EventBase<PlatformTrait>::wParam;
+        using EventBase<PlatformTrait>::lParam;
+
         HWND AffectedWindow() const { return std::bit_cast<HWND>(wParam); }
 
 
     };
-    using Char = TypedEvent<EventType::Char>;
-    using DeadChar = TypedEvent<EventType::Dead_Char>;
-    using Hotkey = TypedEvent<EventType::Hotkey>;
-    using KeyDown = TypedEvent<EventType::Key_Down>;
-    using KeyUp = TypedEvent<EventType::Key_Up>;
-    using KillFocus = TypedEvent<EventType::Kill_Focus>;
-    using SetFocus = TypedEvent<EventType::Set_Focus>;
-    using SystemDeadChar = TypedEvent<EventType::System_Dead_Char>;
-    using SystemKeyDown = TypedEvent<EventType::System_Key_Down>;
-    using SystemKeyUp = TypedEvent<EventType::System_Key_Up>;
-    using UnicodeChar = TypedEvent<EventType::Unicode_Char>;
+    //using Char = TypedEventImpl<EventType::Char>;
+    //using DeadChar = TypedEventImpl<EventType::Dead_Char>;
+    //using Hotkey = TypedEventImpl<EventType::Hotkey>;
+    //using KeyDown = TypedEventImpl<EventType::Key_Down>;
+    //using KeyUp = TypedEventImpl<EventType::Key_Up>;
+    //using KillFocus = TypedEventImpl<EventType::Kill_Focus>;
+    //using SetFocus = TypedEventImpl<EventType::Set_Focus>;
+    //using SystemDeadChar = TypedEventImpl<EventType::System_Dead_Char>;
+    //using SystemKeyDown = TypedEventImpl<EventType::System_Key_Down>;
+    //using SystemKeyUp = TypedEventImpl<EventType::System_Key_Up>;
+    //using UnicodeChar = TypedEventImpl<EventType::Unicode_Char>;
 
 #pragma endregion
 
-    export template<class Func, EventType E>
-    concept VisitableEvent = std::invocable<Func, TypedEvent<E>>;
+    template<class Func, EventType E, class PlatformTrait>
+    concept VisitableEventImpl = std::invocable<Func, TypedEventImpl<E, PlatformTrait>>;
 
-    export template<class Func>
-    concept HasVisitableEvent = VisitableWindowNotifications<Func> ||
-        VisitableKeyboardNotifications<Func>;
+    template<class Func, class PlatformTrait>
+    concept HasVisitableEventImpl = VisitableWindowNotifications<Func, PlatformTrait> ||
+        VisitableKeyboardNotifications<Func, PlatformTrait>;
 
-    template<EventType Type, class Func, std::invocable<Event> DefaultFunc>
-    LRESULT VisitEventImpl(Func&& visitor, Event event, DefaultFunc&& defaultFunc)
+    template<EventType Type, class EventTy, class Func, std::invocable<EventTy> DefaultFunc>
+    LRESULT VisitEventImpl(Func&& visitor, EventTy&& event, DefaultFunc&& defaultFunc)
     {
-        if constexpr(VisitableEvent<Func, Type>)
+        if constexpr(VisitableEventImpl<Func, Type, typename EventTy::platform_traits>)
         {
-            return visitor(std::bit_cast<TypedEvent<Type>>(event));
+            return visitor(std::bit_cast<TypedEventImpl<Type, typename EventTy::platform_traits>>(event));
         }
         else
         {
-            return defaultFunc(std::forward<Event>(event));
+            return defaultFunc(std::forward<EventTy>(event));
         }
     }
 
-    export template<class Func, std::invocable<Event> DefaultFunc>
-    LRESULT VisitEvent(Func&& visitor, Event&& event, DefaultFunc&& defaultFunc)
+    export template<class Func, class EventTy, std::invocable<EventTy> DefaultFunc>
+    LRESULT VisitEvent(Func&& visitor, EventTy&& event, DefaultFunc&& defaultFunc)
     {
         switch(event.type)
         {
-#pragma region Window Notification Event cases
+#pragma region Window Notification EventImpl cases
         case EventType::Activate_App:
-            return VisitEventImpl<EventType::Activate_App>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            return VisitEventImpl<EventType::Activate_App>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
         case EventType::Cancel_Mode:
-            return VisitEventImpl<EventType::Cancel_Mode>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            return VisitEventImpl<EventType::Cancel_Mode>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
         case EventType::Child_Activate:
-            return VisitEventImpl<EventType::Child_Activate>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            return VisitEventImpl<EventType::Child_Activate>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
         case EventType::Close:
-            return VisitEventImpl<EventType::Close>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            return VisitEventImpl<EventType::Close>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
         case EventType::Compacting:
-            return VisitEventImpl<EventType::Compacting>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            return VisitEventImpl<EventType::Compacting>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
         case EventType::Create:
-            return VisitEventImpl<EventType::Create>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            return VisitEventImpl<EventType::Create>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
         case EventType::Destroy:
-            return VisitEventImpl<EventType::Destroy>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            return VisitEventImpl<EventType::Destroy>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
         case EventType::Enable:
-            return VisitEventImpl<EventType::Enable>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            return VisitEventImpl<EventType::Enable>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
         case EventType::Enter_Size_Move:
-            return VisitEventImpl<EventType::Enter_Size_Move>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            return VisitEventImpl<EventType::Enter_Size_Move>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
         case EventType::Exit_Size_Move:
-            return VisitEventImpl<EventType::Exit_Size_Move>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            return VisitEventImpl<EventType::Exit_Size_Move>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
         case EventType::Get_Icon:
-            return VisitEventImpl<EventType::Get_Icon>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            return VisitEventImpl<EventType::Get_Icon>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
         case EventType::Get_Min_Max_Info:
-            return VisitEventImpl<EventType::Get_Min_Max_Info>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            return VisitEventImpl<EventType::Get_Min_Max_Info>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
         case EventType::Input_Language_Change:
-            return VisitEventImpl<EventType::Input_Language_Change>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            return VisitEventImpl<EventType::Input_Language_Change>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
         case EventType::Input_Language_Change_Request:
-            return VisitEventImpl<EventType::Input_Language_Change_Request>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            return VisitEventImpl<EventType::Input_Language_Change_Request>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
         case EventType::Move:
-            return VisitEventImpl<EventType::Move>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            return VisitEventImpl<EventType::Move>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
         case EventType::Moving:
-            return VisitEventImpl<EventType::Moving>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            return VisitEventImpl<EventType::Moving>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
         case EventType::Nonclient_Activate:
-            return VisitEventImpl<EventType::Nonclient_Activate>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            return VisitEventImpl<EventType::Nonclient_Activate>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
         case EventType::Nonclient_Calculate_Size:
-            return VisitEventImpl<EventType::Nonclient_Calculate_Size>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            return VisitEventImpl<EventType::Nonclient_Calculate_Size>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
         case EventType::Nonclient_Create:
-            return VisitEventImpl<EventType::Nonclient_Create>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            return VisitEventImpl<EventType::Nonclient_Create>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
         case EventType::Nonclient_Destroy:
-            return VisitEventImpl<EventType::Nonclient_Destroy>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            return VisitEventImpl<EventType::Nonclient_Destroy>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
         case EventType::Null:
-            return VisitEventImpl<EventType::Null>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            return VisitEventImpl<EventType::Null>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
         case EventType::QueryDragIcon:
-            return VisitEventImpl<EventType::QueryDragIcon>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            return VisitEventImpl<EventType::QueryDragIcon>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
         case EventType::QueryOpen:
-            return VisitEventImpl<EventType::QueryOpen>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            return VisitEventImpl<EventType::QueryOpen>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
         case EventType::Quit:
-            return VisitEventImpl<EventType::Quit>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            return VisitEventImpl<EventType::Quit>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
         case EventType::ShowWindow:
-            return VisitEventImpl<EventType::ShowWindow>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            return VisitEventImpl<EventType::ShowWindow>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
         case EventType::Size:
-            return VisitEventImpl<EventType::Size>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            return VisitEventImpl<EventType::Size>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
         case EventType::Sizing:
-            return VisitEventImpl<EventType::Sizing>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            return VisitEventImpl<EventType::Sizing>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
         case EventType::Style_Changed:
-            return VisitEventImpl<EventType::Style_Changed>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            return VisitEventImpl<EventType::Style_Changed>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
         case EventType::Style_Changing:
-            return VisitEventImpl<EventType::Style_Changing>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            return VisitEventImpl<EventType::Style_Changing>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
         case EventType::Theme_Changed:
-            return VisitEventImpl<EventType::Theme_Changed>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            return VisitEventImpl<EventType::Theme_Changed>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
         case EventType::User_Changed:
-            return VisitEventImpl<EventType::User_Changed>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            return VisitEventImpl<EventType::User_Changed>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
         case EventType::Window_Position_Changed:
-            return VisitEventImpl<EventType::Window_Position_Changed>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            return VisitEventImpl<EventType::Window_Position_Changed>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
         case EventType::Window_Position_Changing:
-            return VisitEventImpl<EventType::Window_Position_Changing>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+            return VisitEventImpl<EventType::Window_Position_Changing>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
 #pragma endregion
 
-#pragma region Keyboard Notification Event cases
+#pragma region Keyboard Notification EventTy cases
             case EventType::Activate:
-                return VisitEventImpl<EventType::Activate>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+                return VisitEventImpl<EventType::Activate>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
             case EventType::Application_Command:
-                return VisitEventImpl<EventType::Application_Command>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+                return VisitEventImpl<EventType::Application_Command>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
             case EventType::Char:
-                return VisitEventImpl<EventType::Char>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+                return VisitEventImpl<EventType::Char>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
             case EventType::Dead_Char:
-                return VisitEventImpl<EventType::Dead_Char>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+                return VisitEventImpl<EventType::Dead_Char>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
             case EventType::Hotkey:
-                return VisitEventImpl<EventType::Hotkey>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+                return VisitEventImpl<EventType::Hotkey>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
             case EventType::Key_Down:
-                return VisitEventImpl<EventType::Key_Down>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+                return VisitEventImpl<EventType::Key_Down>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
             case EventType::Key_Up:
-                return VisitEventImpl<EventType::Key_Up>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+                return VisitEventImpl<EventType::Key_Up>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
             case EventType::Kill_Focus:
-                return VisitEventImpl<EventType::Kill_Focus>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+                return VisitEventImpl<EventType::Kill_Focus>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
             case EventType::Set_Focus:
-                return VisitEventImpl<EventType::Set_Focus>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+                return VisitEventImpl<EventType::Set_Focus>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
             case EventType::System_Dead_Char:
-                return VisitEventImpl<EventType::System_Dead_Char>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+                return VisitEventImpl<EventType::System_Dead_Char>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
             case EventType::System_Key_Down:
-                return VisitEventImpl<EventType::System_Key_Down>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+                return VisitEventImpl<EventType::System_Key_Down>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
             case EventType::System_Key_Up:
-                return VisitEventImpl<EventType::System_Key_Up>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+                return VisitEventImpl<EventType::System_Key_Up>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
             case EventType::Unicode_Char:
-                return VisitEventImpl<EventType::Unicode_Char>(std::forward<Func>(visitor), std::forward<Event>(event), std::forward<DefaultFunc>(defaultFunc));
+                return VisitEventImpl<EventType::Unicode_Char>(std::forward<Func>(visitor), std::forward<EventTy>(event), std::forward<DefaultFunc>(defaultFunc));
 #pragma endregion
 
         default:
-            return defaultFunc(std::forward<Event>(event));
+            return defaultFunc(std::forward<EventTy>(event));
         }
     }
 
@@ -751,9 +857,8 @@ namespace MoWin
 
     DEFINE_ENUM_FLAG_OPERATORS(WindowClassStyle);
 
-
-    export template<class Ty>
-    concept HasProcedure = requires (Ty self, Event event)
+    template<class Ty, class PlatformTrait>
+    concept HasProcedureImpl = requires (Ty self, EventImpl<PlatformTrait> event)
     {
         { self.operator()(event) } -> std::same_as<EventProcessed>;
     };
@@ -934,33 +1039,33 @@ namespace MoWin
                 typename platform_traits::window_create_struct_type* createStruct = std::bit_cast<typename platform_traits::window_create_struct_type*>(lParam);
                 platform_traits::SetWindowData(hwnd, GWLP_USERDATA, createStruct->lpCreateParams);
             }
-                break;
+            break;
             case WM_NCDESTROY:
                 Unregister();
                 break;
             }
 
             Ty* self = platform_traits::template GetWindowData<Ty*>(hwnd, GWLP_USERDATA);
-            auto defProc = [](Event e) { return platform_traits::DefaultProcedure(e); };
+            auto defProc = [](EventImpl<platform_traits> e) { return platform_traits::DefaultProcedure(e); };
 
             if(self == nullptr)
             {
-                return defProc(Event{ hwnd, static_cast<EventType>(uMsg), wParam, lParam });
+                return defProc(EventImpl<platform_traits>{ hwnd, static_cast<EventType>(uMsg), wParam, lParam });
             }
             else
             {
-                if constexpr(HasVisitableEvent<Ty> && HasProcedure<Ty>)
+                if constexpr(HasVisitableEventImpl<Ty, platform_traits> && HasProcedureImpl<Ty, platform_traits>)
                 {
-                    return (*self)(Event{ hwnd, static_cast<EventType>(uMsg), wParam, lParam })
-                        .MapUnprocessed([self, &defProc](Event&& e) { return VisitEvent(*self, std::forward<Event>(e), defProc); }, Event{ hwnd, static_cast<EventType>(uMsg), wParam, lParam });
+                    return (*self)(EventImpl<platform_traits>{ hwnd, static_cast<EventType>(uMsg), wParam, lParam })
+                        .MapUnprocessed([self, &defProc](EventImpl<platform_traits>&& e) { return VisitEvent(*self, std::forward<EventImpl<platform_traits>>(e), defProc); }, EventImpl<platform_traits>{ hwnd, static_cast<EventType>(uMsg), wParam, lParam });
                 }
-                else if constexpr(HasProcedure<Ty>)
+                else if constexpr(HasProcedureImpl<Ty, platform_traits>)
                 {
-                    return (*self)(Event{ hwnd, static_cast<EventType>(uMsg), wParam, lParam });
+                    return (*self)(EventImpl<platform_traits>{ hwnd, static_cast<EventType>(uMsg), wParam, lParam });
                 }
                 else
                 {
-                    return VisitEvent(*self, Event{ hwnd, static_cast<EventType>(uMsg), wParam, lParam }, defProc);
+                    return VisitEvent(*self, EventImpl<platform_traits>{ hwnd, static_cast<EventType>(uMsg), wParam, lParam }, defProc);
                 }
             }
         }
@@ -968,6 +1073,7 @@ namespace MoWin
 
     template<class Ty>
     struct WindowClassTraits;
+
 #pragma endregion
 
     //https://docs.microsoft.com/en-us/windows/win32/winmsg/window-styles

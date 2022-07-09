@@ -39,6 +39,8 @@ struct TESTWindowClass
     LRESULT operator()(MoWin::Event::WindowNotifications::Create event)
     {
         hwnd = event.window;
+
+        //auto v = MoWin::DefaultPlatformTraits::DefaultProcedure(std::bit_cast<MoWin::Event>(event));
         return TRUE;
     }
     LRESULT operator()(MoWin::Event::WindowNotifications::Destroy event)
@@ -98,7 +100,8 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     LoadStringW(hInstance, IDS_APP_TITLE, szTitle, MAX_LOADSTRING);
     LoadStringW(hInstance, IDC_TEST, szWindowClass, MAX_LOADSTRING);
 
-
+    SetWindowLongPtr(nullptr, GWLP_USERDATA, 0);
+    auto error = GetLastError();
     hInst = hInstance; // Store instance handle in our global variable
 
     MoWin::Window<TESTWindowClass> window(szTitle, MoWin::WindowStyle(WS_OVERLAPPEDWINDOW | WS_VISIBLE),
