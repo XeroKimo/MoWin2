@@ -119,43 +119,6 @@ namespace MoWin
     template<class Func, class RetVal, class... Args>
     concept invocable_r = std::is_invocable_r_v<RetVal, Func, Args...>;
 
-
-    struct EventUnprocessed
-    {
-    };
-
-    export inline constexpr EventUnprocessed eventUnprocessed{};
-
-    export class EventProcessed
-    {
-    private:
-        std::variant<LRESULT, EventUnprocessed> m_processedState;
-
-    public:
-        EventProcessed() : m_processedState(eventUnprocessed)
-        {
-        }
-        EventProcessed(EventUnprocessed) : m_processedState(eventUnprocessed) {}
-        EventProcessed(LRESULT result) : m_processedState(result) {}
-
-        template<class EventTy, invocable_r<EventProcessed, EventTy> Func>
-        EventProcessed MapUnprocessed(Func&& func, EventTy&& event)
-        {
-            if(std::holds_alternative<LRESULT>(m_processedState))
-                return *this;
-            else
-                return func(std::forward<EventTy>(event));
-        }
-
-        operator LRESULT() const
-        {
-            if(std::holds_alternative<LRESULT>(m_processedState))
-                return std::get<0>(m_processedState);
-            else
-                return 0;
-        }
-    };
-
 #pragma region EventTy Categories
 
     template<class PlatformTrait>
@@ -677,11 +640,11 @@ namespace MoWin
         VisitableKeyboardNotifications<Func, PlatformTrait>;
 
     template<EventType Type, class EventTy, class Func, std::invocable<EventTy> DefaultFunc>
-    LRESULT VisitEventImpl(Func&& visitor, EventTy&& event, DefaultFunc&& defaultFunc)
+    LRESULT VisitEventImpl(Func&& visitor, EventTy event, DefaultFunc&& defaultFunc)
     {
-        if constexpr(VisitableEventImpl<Func, Type, typename EventTy::platform_traits>)
+        if constexpr(VisitableEventImpl<Func, Type, typename std::remove_reference_t<EventTy>::platform_traits>)
         {
-            return visitor(std::bit_cast<TypedEventImpl<Type, typename EventTy::platform_traits>>(event));
+            return visitor(std::bit_cast<TypedEventImpl<Type, typename std::remove_reference_t<EventTy>::platform_traits>>(event));
         }
         else
         {
@@ -690,7 +653,7 @@ namespace MoWin
     }
 
     export template<class Func, class EventTy, std::invocable<EventTy> DefaultFunc>
-    LRESULT VisitEvent(Func&& visitor, EventTy&& event, DefaultFunc&& defaultFunc)
+    LRESULT VisitEvent(Func&& visitor, EventTy event, DefaultFunc&& defaultFunc)
     {
         switch(event.type)
         {
@@ -860,7 +823,7 @@ namespace MoWin
     template<class Ty, class PlatformTrait>
     concept HasProcedureImpl = requires (Ty self, EventImpl<PlatformTrait> event)
     {
-        { self.operator()(event) } -> std::same_as<EventProcessed>;
+        { self.operator()(event) } -> std::same_as<LRESULT>;
     };
 
     export template<class Ty>
@@ -925,6 +888,7 @@ namespace MoWin
         static HICON SmallIcon(HINSTANCE instance) { return nullptr; }
     };
 
+
     template<class Ty, class PlatformTrait>
     struct WindowClassTraitsBase
     {
@@ -938,12 +902,21 @@ namespace MoWin
         inline static std::atomic<unsigned short> m_instanceCount;
         inline static HINSTANCE m_instance;
 
+        template<class Ty, class Traits>
+        friend class WindowImpl;
+
     public:
         static bool Registered()
         {
             return registered;
         }
 
+        static LRESULT DefaultProcedure(EventImpl<platform_traits> e)
+        {
+            return platform_traits::DefaultProcedure(std::forward<EventImpl<platform_traits>>(e));
+        }
+
+    private:
         static bool Register(HINSTANCE instance = nullptr)
         {
             if(Registered())
@@ -1034,44 +1007,34 @@ namespace MoWin
             switch(uMsg)
             {
             case WM_NCCREATE:
-            {
                 m_instanceCount++;
-                typename platform_traits::window_create_struct_type* createStruct = std::bit_cast<typename platform_traits::window_create_struct_type*>(lParam);
-                platform_traits::SetWindowData(hwnd, GWLP_USERDATA, createStruct->lpCreateParams);
-            }
-            break;
+                break;
             case WM_NCDESTROY:
                 Unregister();
                 break;
             }
 
             Ty* self = platform_traits::template GetWindowData<Ty*>(hwnd, GWLP_USERDATA);
-            auto defProc = [](EventImpl<platform_traits> e) { return platform_traits::DefaultProcedure(e); };
 
             if(self == nullptr)
             {
-                return defProc(EventImpl<platform_traits>{ hwnd, static_cast<EventType>(uMsg), wParam, lParam });
+                return DefaultProcedure(EventImpl<platform_traits>{ hwnd, static_cast<EventType>(uMsg), wParam, lParam });
             }
             else
             {
-                if constexpr(HasVisitableEventImpl<Ty, platform_traits> && HasProcedureImpl<Ty, platform_traits>)
-                {
-                    return (*self)(EventImpl<platform_traits>{ hwnd, static_cast<EventType>(uMsg), wParam, lParam })
-                        .MapUnprocessed([self, &defProc](EventImpl<platform_traits>&& e) { return VisitEvent(*self, std::forward<EventImpl<platform_traits>>(e), defProc); }, EventImpl<platform_traits>{ hwnd, static_cast<EventType>(uMsg), wParam, lParam });
-                }
-                else if constexpr(HasProcedureImpl<Ty, platform_traits>)
+                if constexpr(HasProcedureImpl<Ty, platform_traits>)
                 {
                     return (*self)(EventImpl<platform_traits>{ hwnd, static_cast<EventType>(uMsg), wParam, lParam });
                 }
                 else
                 {
-                    return VisitEvent(*self, EventImpl<platform_traits>{ hwnd, static_cast<EventType>(uMsg), wParam, lParam }, defProc);
+                    return VisitEvent(*self, EventImpl<platform_traits>{ hwnd, static_cast<EventType>(uMsg), wParam, lParam }, DefaultProcedure);
                 }
             }
         }
     };
 
-    template<class Ty>
+    export template<class Ty>
     struct WindowClassTraits;
 
 #pragma endregion

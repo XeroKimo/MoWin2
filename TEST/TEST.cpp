@@ -34,22 +34,15 @@ struct TESTWindowClass
 
     //TESTWindowClass() {}
 
-    HWND hwnd;    
+    HWND hwnd;
 
-    LRESULT operator()(MoWin::Event::WindowNotifications::Create event)
-    {
-        hwnd = event.window;
-
-        //auto v = MoWin::DefaultPlatformTraits::DefaultProcedure(std::bit_cast<MoWin::Event>(event));
-        return TRUE;
-    }
     LRESULT operator()(MoWin::Event::WindowNotifications::Destroy event)
     {
         PostQuitMessage(0);
         return 0;
     }
 
-    MoWin::EventProcessed operator()(MoWin::Event event)
+    LRESULT operator()(MoWin::Event event)
     {
         switch(static_cast<UINT>(event.type))
         {
@@ -78,8 +71,13 @@ struct TESTWindowClass
             EndPaint(event.window, &ps);
         }
         break;
+        default:
+            {
+                return MoWin::VisitEvent(*this, event, MoWin::WindowClassTraits<TESTWindowClass>::DefaultProcedure);
+            }
         }
-        return MoWin::eventUnprocessed;
+
+        return 0;
     }
 };
 
