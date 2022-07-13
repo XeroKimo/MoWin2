@@ -10,19 +10,26 @@ Create a class that will serve as a WindowClass, it will look something like the
 class MainApp
 {
 public:
-  //Required
+  //Required functions:
   static LPCSTR WindowTitle() { return "MainApp"; }
   
+  //Non copy or move constructors require the first parameter in 
+  //the parameter list must be HWND
+  MainApp(HWND hwnd);
+  
   //Requires either or both the following operator() overloads.
-  //operator()(MoWin::Event event) Is for legacy support, with a custom EventProcessed return type 
-  //which takes either a LRESULT or MoWin::eventUnprocessed. Unprocessed events will attempt
-  //to match with a specialized operator()(MoWin::Event::... event) if they exist, otherwise
-  //if there are absolutely no specialized operator()s, it is the equivalent of returning 0,
-  //if there are specialized operator() but there are no matches, it is whatever DefWindowProc() will return.
-  MoWin::EventProcessed operator()(MoWin::Event event) { return 0; }
+  //operator()(MoWin::Event event) Is for legacy support
+  //If operator()(MoWin::Event) does not exist, it'll try to match
+  //the operator()(MoWin::Event::...) of the correct type where ... represent 
+  //a specific event like WM_CHAR.
+  //If operator()(MoWin::Event event) does exist, the library will only call
+  //said operator. In order to call a event specific operator, the user must call
+  //it explicitly. We provide MoWin::WindowClassTraits<MainApp>::VisitEvent() to help
+  //everyone out
+  LRESULT operator()(MoWin::Event event) { return 0; }
   LRESULT operator()(MoWin::Event::... event)
   
-  //Optional
+  //Optional functions:
   static MoWin::WindowClassStyle Style();
   static int ExtraClassBytes();
   static int ExtraWindowBytes();
@@ -33,4 +40,5 @@ public:
   static HICON SmallIcon(HINSTANCE instance);
 };
 ```
-Once a class was defined, a window can now be created by doing the following `MoWin::Window<MainApp> window();` where the constructor has similar params to CreateWindow, and then extra params to initialize `<MainApp>` as the class passed in to the window is directly associated as the window class and contains an instance of one. The window class instance will first be initialized followed by the window, if the class instance requires the window handle for anything, they can get it as early as a NonClientCreate event
+Once a class was defined, a window can now be created by doing the following `MoWin::Window<MainApp> window();` where the constructor has similar params to CreateWindow, and then extra params to initialize `<MainApp>` as the class passed in to the window is directly associated as the window class and contains an instance of one. 
+The window will be initialized first, followed by the class data. Since the class data is initialized after, all events during the creation of the window are currently lost.
