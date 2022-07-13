@@ -40,8 +40,10 @@ namespace MoWin
     export template<class Ty>
         concept IsWindowClassW = requires
     {
+        requires std::is_constructible_v<Ty, HWND>;
+        requires (W64U::FileHasProcedure<Ty> || W64U::FileHasVisitableEvent<Ty>);
         { Ty::ClassName() } -> std::same_as<W64U::FileStringType>;
-    } && (HasProcedureW<Ty> || HasVisitableEventW<Ty>);
+    };
 
 
     namespace W64U

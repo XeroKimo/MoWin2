@@ -13,10 +13,9 @@ export import :Platform.Win64.MBCS;
 
 #undef CreateWindow
 
-export namespace MoWin
+namespace MoWin
 {
-
-    template<class Ty, class Traits>
+    export template<class Ty, class Traits>
     class WindowImpl
     {    
     private:
@@ -120,26 +119,26 @@ export namespace MoWin
         }
     };
 
-    using EventA = EventImpl<MBCSPlatformTraits>;
-    using EventW = EventImpl<UnicodePlatformTraits>;
-    using Event = EventImpl<DefaultPlatformTraits>;
+    export using EventA = EventImpl<MBCSPlatformTraits>;
+    export using EventW = EventImpl<UnicodePlatformTraits>;
+    export using Event = EventImpl<DefaultPlatformTraits>;
 
-    template<EventType Type>
+    export template<EventType Type>
     using TypedEventA = TypedEventImpl<Type, MBCSPlatformTraits>;
-    template<EventType Type>
+    export template<EventType Type>
     using TypedEventW = TypedEventImpl<Type, UnicodePlatformTraits>;
-    template<EventType Type>
+    export template<EventType Type>
     using TypedEvent = TypedEventImpl<Type, DefaultPlatformTraits>;
 
-    template<IsWindowClassA Ty>
+    export template<IsWindowClassA Ty>
         requires (!IsWindowClassW<Ty>)
     using WindowA = WindowImpl<Ty, MBCSPlatformTraits>;
 
-    template<IsWindowClassW Ty>
+    export template<IsWindowClassW Ty>
         requires (!IsWindowClassA<Ty>)
     using WindowW = WindowImpl<Ty, UnicodePlatformTraits>;
 
-    template<IsWindowClass Ty>
+    export template<IsWindowClass Ty>
     using Window = WindowImpl<Ty, DefaultPlatformTraits>;
 
 }

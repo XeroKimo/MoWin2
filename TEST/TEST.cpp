@@ -42,6 +42,12 @@ struct TESTWindowClass
         return 0;
     }
 
+    LRESULT operator()(MoWin::Event::KeyboardInputNotifications::Char event)
+    {
+
+        return 0;
+    }
+
     LRESULT operator()(MoWin::Event event)
     {
         switch(static_cast<UINT>(event.type))
@@ -73,7 +79,7 @@ struct TESTWindowClass
         break;
         default:
             {
-                return MoWin::VisitEvent(*this, event, MoWin::WindowClassTraits<TESTWindowClass>::DefaultProcedure);
+                return MoWin::WindowClassTraits<TESTWindowClass>::VisitEvent(*this, event);
             }
         }
 
