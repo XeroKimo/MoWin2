@@ -28,6 +28,21 @@ namespace MoWin
 
         template<class Ty>
         concept FileHasProcedure = HasProcedureImpl<Ty, FilePlatformTraits>;
+
+        template<class Ty>
+        concept FileIsWindowClass = IsWindowClassImpl<Ty, FilePlatformTraits>;
+
+        template<class Ty>
+        concept FileIsConcreteWindowClass =
+            FileIsWindowClass<Ty> &&
+            StyleDefined<Ty> &&
+            ExtraClassBytesDefined<Ty> &&
+            ExtraWindowBytesDefined<Ty> &&
+            IconDefined<Ty> &&
+            CursorDefined<Ty> &&
+            BackgroundBrushDefined<Ty> &&
+            MenuDefined<Ty, LPCWSTR> &&
+            SmallIconDefined<Ty>;
     }
 
 
@@ -38,52 +53,26 @@ namespace MoWin
     concept HasProcedureW = W64U::FileHasProcedure<Ty>;
 
     export template<class Ty>
-        concept IsWindowClassW = requires
-    {
-        requires std::is_constructible_v<Ty, HWND>;
-        requires (W64U::FileHasProcedure<Ty> || W64U::FileHasVisitableEvent<Ty>);
-        { Ty::ClassName() } -> std::same_as<W64U::FileStringType>;
-    };
-
-
-    namespace W64U
-    {
-        template<class Ty>
-        concept FileIsWindowClass = IsWindowClassW<Ty>;
-    }
+    concept IsWindowClassW = W64U::FileIsWindowClass<Ty>;
 
     export template<class Ty>
-        concept IsFullWindowClassW = W64U::FileIsWindowClass<Ty> &&
-        StyleDefined<Ty> &&
-        ExtraClassBytesDefined<Ty> &&
-        ExtraWindowBytesDefined<Ty> &&
-        IconDefined<Ty> &&
-        CursorDefined<Ty> &&
-        BackgroundBrushDefined<Ty> &&
-        MenuDefined<Ty, LPCWSTR> &&
-        SmallIconDefined<Ty>;
-
-    namespace W64U
-    {
-        template<class Ty>
-        concept FileIsFullWindowClass = IsFullWindowClassW<Ty>;
-    }
+    concept IsConcreteWindowClassW = W64U::FileIsConcreteWindowClass<Ty>;
 
 #ifdef _WIN64 
 
-    export using UnicodePlatformTraits = PlatformTraits<W64U::filePlatform, W64U::fileCharacterSet>;
+    export using UnicodePlatformTraits = W64U::FilePlatformTraits;
 #ifdef _UNICODE
 
     export inline constexpr Platform defaultPlatform = W64U::filePlatform;
     export inline constexpr CharacterSet characterSet = W64U::fileCharacterSet;
 
     export template<class Ty>
-        concept IsWindowClass = W64U::FileIsWindowClass<Ty>;
+    concept IsWindowClass = W64U::FileIsWindowClass<Ty>;
 
     export template<class Ty>
-        concept IsFullWindowClass = W64U::FileIsFullWindowClass<Ty>;
+    concept IsConcreteWindowClass = W64U::FileIsConcreteWindowClass<Ty>;
 
-    export using DefaultPlatformTraits = UnicodePlatformTraits;
+    export using DefaultPlatformTraits = W64U::FilePlatformTraits;
 
     export template<class Ty>
     concept HasProcedure = W64U::FileHasProcedure<Ty>;

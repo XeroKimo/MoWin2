@@ -1365,6 +1365,14 @@ namespace MoWin
         { self.operator()(event) } -> std::same_as<LRESULT>;
     };
 
+    template<class Ty, class PlatformTraits>
+    concept IsWindowClassImpl = requires(Ty self)
+    {
+        requires std::is_constructible_v<Ty, HWND>;
+        requires (HasProcedureImpl<Ty, PlatformTraits> || HasVisitableEventImpl<Ty, PlatformTraits>);
+        { Ty::ClassName() } -> std::same_as<typename PlatformTraits::string_type>;
+    };
+
     export template<class Ty>
         concept StyleDefined = requires()
     {
@@ -1442,6 +1450,7 @@ namespace MoWin
         inline static HINSTANCE m_instance;
 
         template<class Ty, class Traits>
+            requires IsWindowClassImpl<Ty, Traits>
         friend class WindowImpl;
 
     public:

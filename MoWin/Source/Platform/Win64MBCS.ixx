@@ -10,8 +10,6 @@ import :Common;
 #undef UnregisterClass
 #undef RegisterClass
 
-#define SOMETHING_RANDOM
-
 namespace MoWin
 {
     namespace W64M
@@ -25,67 +23,54 @@ namespace MoWin
         using FileExtendedClassType = WNDCLASSEXA;
         using FileWindowCreateStruct = CREATESTRUCTA;
 
-
         template<class Ty>
         concept FileHasVisitableEvent = HasVisitableEventImpl<Ty, FilePlatformTraits>;
 
         template<class Ty>
         concept FileHasProcedure = HasProcedureImpl<Ty, FilePlatformTraits>;
-    }
 
-    export template<class Ty>
-        concept HasVisitableEventA = W64M::FileHasVisitableEvent<Ty>;
-
-    export template<class Ty>
-        concept HasProcedureA = W64M::FileHasProcedure<Ty>;
-
-    export template<class Ty>
-        concept IsWindowClassA = requires
-    {
-        requires std::is_constructible_v<Ty, HWND>;
-        requires (W64M::FileHasProcedure<Ty> || W64M::FileHasVisitableEvent<Ty>);
-
-        { Ty::ClassName() } -> std::same_as<W64M::FileStringType>;
-    };
-
-
-    namespace W64M
-    {
         template<class Ty>
-        concept FileIsWindowClass = IsWindowClassA<Ty>;
+        concept FileIsWindowClass = IsWindowClassImpl<Ty, FilePlatformTraits>;
+
+        template<class Ty>
+        concept FileIsConcreteWindowClass = 
+            FileIsWindowClass<Ty> &&
+            StyleDefined<Ty> &&
+            ExtraClassBytesDefined<Ty> &&
+            ExtraWindowBytesDefined<Ty> &&
+            IconDefined<Ty> &&
+            CursorDefined<Ty> &&
+            BackgroundBrushDefined<Ty> &&
+            MenuDefined<Ty, LPCWSTR> &&
+            SmallIconDefined<Ty>;
     }
 
     export template<class Ty>
-        concept IsFullWindowClassA = W64M::FileIsWindowClass<Ty> &&
-        StyleDefined<Ty> &&
-        ExtraClassBytesDefined<Ty> &&
-        ExtraWindowBytesDefined<Ty> &&
-        IconDefined<Ty> &&
-        CursorDefined<Ty> &&
-        BackgroundBrushDefined<Ty> &&
-        MenuDefined<Ty, LPCWSTR> &&
-        SmallIconDefined<Ty>;
+    concept HasVisitableEventA = W64M::FileHasVisitableEvent<Ty>;
 
-    namespace W64M
-    {
-        template<class Ty>
-        concept FileIsFullWindowClass = IsFullWindowClassA<Ty>;
-    }
+    export template<class Ty>
+    concept HasProcedureA = W64M::FileHasProcedure<Ty>;
+
+    export template<class Ty>
+    concept IsWindowClassA = W64M::FileIsWindowClass<Ty>;
+
+    export template<class Ty>
+    concept IsConcreteWindowClassA = W64M::FileIsConcreteWindowClass<Ty>;
 
 #ifdef _WIN64 
-    export using MBCSPlatformTraits = PlatformTraits<W64M::filePlatform, W64M::fileCharacterSet>;
+    export using MBCSPlatformTraits = W64M::FilePlatformTraits;
 #ifdef _MBCS
 
     export inline constexpr Platform defaultPlatform = W64M::filePlatform;
     export inline constexpr CharacterSet characterSet = W64M::fileCharacterSet;
 
     export template<class Ty>
-        concept IsWindowClass = W64M::FileIsWindowClass<Ty>;
+    concept IsWindowClass = W64M::FileIsWindowClass<Ty>;
 
     export template<class Ty>
-        concept IsFullWindowClass = W64M::FileIsFullWindowClass<Ty>;
+    concept IsConcreteWindowClass = W64M::FileIsConcreteWindowClass<Ty>;
 
-    export using DefaultPlatformTraits = MBCSPlatformTraits;
+    export using DefaultPlatformTraits = W64M::FilePlatformTraits;
 
     export template<class Ty>
     concept HasProcedure = W64M::FileHasProcedure<Ty>;
