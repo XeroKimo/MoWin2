@@ -42,12 +42,6 @@ struct TESTWindowClass
         return 0;
     }
 
-    LRESULT operator()(MoWin::Event::KeyboardInputNotifications::Char event)
-    {
-
-        return 0;
-    }
-
     LRESULT operator()(MoWin::Event event)
     {
         switch(static_cast<UINT>(event.type))
@@ -109,7 +103,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     hInst = hInstance; // Store instance handle in our global variable
 
     MoWin::Window<TESTWindowClass> window(szTitle, MoWin::WindowStyle(WS_OVERLAPPEDWINDOW | WS_VISIBLE),
-       CW_USEDEFAULT, 0, CW_USEDEFAULT, 0, nullptr, nullptr, hInstance);
+       POINT{ 0, 0 }, MoWin::Dimension2D{ 1280, 720 }, nullptr, nullptr, hInstance, MoWin::WindowCreateFlag::None);
 
     if(!window)
     {
