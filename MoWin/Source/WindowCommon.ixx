@@ -1583,17 +1583,22 @@ namespace MoWin
 
         static LRESULT Procedure(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
+            Ty* self = platform_traits::template GetWindowData<Ty*>(hwnd, GWLP_USERDATA);
+
             switch(uMsg)
             {
             case WM_NCCREATE:
                 m_instanceCount++;
                 break;
             case WM_NCDESTROY:
+                if(self != nullptr)
+                {
+                    delete self;
+                }
+
                 Unregister();
                 break;
             }
-
-            Ty* self = platform_traits::template GetWindowData<Ty*>(hwnd, GWLP_USERDATA);
 
             if(self == nullptr)
             {
@@ -2914,14 +2919,14 @@ namespace MoWin
 
     private:
         HWND m_windowHandle;
-        Ty m_data;
 
     public:
         template<class... Params>
         WindowImpl(WindowStyleEx extendedStyle, string_type windowName, WindowStyle style, POINT position, Dimension2D lengths, HWND optionalParent, HMENU menu, HINSTANCE hInstance, WindowCreateFlag flags, Params&&... params) :
-            m_windowHandle(CreateHandle(extendedStyle, windowName, style, Rect{ position, lengths }, optionalParent, menu, hInstance, flags)),
-            m_data(m_windowHandle, std::forward<Params>(params)...)
+            m_windowHandle(CreateHandle(extendedStyle, windowName, style, Rect{ position, lengths }, optionalParent, menu, hInstance, flags))
         {
+            Ty* data = new Ty(m_windowHandle, std::forward<Params>(params)...);
+            platform_traits::SetWindowData(m_windowHandle, GWLP_USERDATA, data);
         }
 
         template<class... Params>
@@ -2933,13 +2938,11 @@ namespace MoWin
 
         WindowImpl(const WindowImpl& other) = delete;
         WindowImpl(WindowImpl&& other) noexcept :
-            m_windowHandle(std::move(other.m_windowHandle)),
-            m_data(std::move(other.m_data))
+            m_windowHandle(std::move(other.m_windowHandle))
         {
             other.m_windowHandle = nullptr;
 
             SetLastError(0);
-            platform_traits::SetWindowData(m_windowHandle, GWLP_USERDATA, &m_data);
             if(GetLastError() == ERROR_INVALID_WINDOW_HANDLE)
             {
                 //Do nothing
@@ -2951,10 +2954,8 @@ namespace MoWin
         {
             m_windowHandle = std::move(other.m_windowHandle);
             other.m_windowHandle = nullptr;
-            m_data = std::move(other.m_data);
 
             SetLastError(0);
-            platform_traits::SetWindowData(m_windowHandle, GWLP_USERDATA, &m_data);
             if(GetLastError() == ERROR_INVALID_WINDOW_HANDLE)
             {
                 //Do nothing
@@ -2962,17 +2963,22 @@ namespace MoWin
             return *this;
         }
 
+        bool operator==(std::nullptr_t) const { return ::IsWindow(m_windowHandle); }
+        bool operator!=(std::nullptr_t) const { return ::IsWindow(m_windowHandle); }
+
         ~WindowImpl()
         {
             DestroyWindow(m_windowHandle);
         }
 
+
+
     public:
         operator HWND() const { return m_windowHandle; }
 
     public:
-        Ty& ClassData() { return m_data; }
-        const Ty& ClassData() const { return m_data; }
+        Ty& ClassData() { return *platform_traits::template GetWindowData<Ty*>(m_windowHandle, GWLP_USERDATA); }
+        const Ty& ClassData() const { return *platform_traits::template GetWindowData<Ty*>(m_windowHandle, GWLP_USERDATA); }
 
     private:
         HWND CreateHandle(WindowStyleEx extendedStyle, string_type windowName, WindowStyle style, Rect windowRect, HWND optionalParent, HMENU menu, HINSTANCE hInstance, WindowCreateFlag flags)
@@ -2982,7 +2988,7 @@ namespace MoWin
                 throw std::exception("Failed to register class");
             }
 
-            if((flags & WindowCreateFlag::Adjust_Size_To_Client) == WindowCreateFlag::Adjust_Size_To_Client)
+            if((flags & WindowCreateFlag::Adjust_Size_For_Client) == WindowCreateFlag::Adjust_Size_For_Client)
             {
                 ::AdjustWindowRectEx(&windowRect, static_cast<DWORD>(style), menu != nullptr, static_cast<DWORD>(extendedStyle));
             }
@@ -2996,8 +3002,6 @@ namespace MoWin
             {
                 throw std::exception("Handle is null");
             }
-
-            platform_traits::SetWindowData(handle, GWLP_USERDATA, &m_data);
 
             return handle;
         }
