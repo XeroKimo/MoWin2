@@ -11,7 +11,7 @@ class MainApp
 {
 public:
   //Required functions:
-  static LPCSTR WindowTitle() { return "MainApp"; }
+  static LPCSTR ClassName() { return "MainApp"; }
   
   //Non copy or move constructors require the first parameter in 
   //the parameter list must be HWND
