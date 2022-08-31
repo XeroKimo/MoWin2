@@ -163,6 +163,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Events.ixx" />
+    <ClCompile Include="Source\MoWin.ixx" />
+    <ClCompile Include="Source\PlatformCommon.ixx" />
+    <ClCompile Include="Source\Platform\Platform.ixx" />
     <ClCompile Include="Source\Platform\Win64MBCS.ixx" />
     <ClCompile Include="Source\Platform\Win64Unicode.ixx" />
     <ClCompile Include="Source\Window.ixx" />

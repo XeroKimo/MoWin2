@@ -2,9 +2,10 @@ module;
 
 #include <Windows.h>
 #include <bit>
-export module MoWin.Window:Platform.Win64.MBCS;
+export module MoWin:Platform.Win64.MBCS;
 
-import :Common;
+import :Window.Common;
+import :Platform.Common;
 
 #undef CreateWindow
 #undef UnregisterClass

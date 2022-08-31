@@ -2,17 +2,20 @@ module;
 
 #include <Windows.h>
 #include <bit>
-export module MoWin.Window:Platform.Win64.Unicode;
+export module MoWin:Platform.Win64.Unicode;
 
-import :Common;
+import :Window.Common;
+import :Platform.Common;
 
 #undef CreateWindow
 #undef UnregisterClass
 #undef RegisterClass
+#undef PeekMessage
+#undef DispatchMessage
 
 namespace MoWin
 {
-    namespace W64U
+    export namespace W64U
     {
         constexpr Platform filePlatform = Platform::Win64;
         constexpr CharacterSet fileCharacterSet = CharacterSet::Unicode;
@@ -44,7 +47,6 @@ namespace MoWin
             MenuDefined<Ty, LPCWSTR> &&
             SmallIconDefined<Ty>;
     }
-
 
     export template<class Ty>
     concept HasVisitableEventW = W64U::FileHasVisitableEvent<Ty>;
@@ -147,6 +149,20 @@ namespace MoWin
         static Ty GetWindowData(HWND hwnd, int index)
         {
             return std::bit_cast<Ty>(GetWindowLongPtrW(hwnd, index));
+        }
+
+        static bool PeekMessage(LPMSG lpMsg,
+            HWND hWnd,
+            UINT wMsgFilterMin,
+            UINT wMsgFilterMax,
+            UINT wRemoveMsg)
+        {
+            return PeekMessageW(lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg);
+        }
+
+        static LRESULT DispatchMessage(LPMSG lpMsg)
+        {
+            return DispatchMessageW(lpMsg);
         }
     };
 

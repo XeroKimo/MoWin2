@@ -7,7 +7,7 @@
 //#include "WindowClass.h"
 //#include "Window.h"
 
-import MoWin.Window;
+import MoWin;
 
 #define MAX_LOADSTRING 100
 
