@@ -44,12 +44,18 @@ Once a class was defined, a window can now be created by doing the following `Mo
 The window will be initialized first, followed by the class data. Since the class data is initialized after, all events during the creation of the window are currently lost.
 
 # Short term goals
-- [ ] Add PR guidelines so that other users can help with the project
+- [ ] Add Contribution guidelines so that other users can help with the project
 - [ ] Support other build chains other that Visual Studio MSVC
 - [x] Reduce boilerplate in registering Window Classes
 - [x] Be able to instantiate a Window of a given Window Class
 - [ ] See if it's possible to make a GetMessage() and PeekMessage() wrapper function that makes MSG the return value
 - [ ] Wrap all window related functions inside the MoWin::WindowInterface class
+- [ ] Support Win64 Unicode
+
+# Medium term Goals
+- [ ] Support Win64 Multibyte
+- [ ] Support Win32 Multibyte
+- [ ] Support Win32 Unicode
 
 # Long term goals
 - [ ] Stable API
