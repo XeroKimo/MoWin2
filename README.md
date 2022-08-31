@@ -11,7 +11,7 @@ class MainApp
 {
 public:
   //Required functions:
-  static LPCSTR WindowTitle() { return "MainApp"; }
+  static LPCSTR ClassName() { return "MainApp"; }
   
   //Non copy or move constructors require the first parameter in 
   //the parameter list must be HWND
@@ -42,3 +42,18 @@ public:
 ```
 Once a class was defined, a window can now be created by doing the following `MoWin::Window<MainApp> window();` where the constructor has similar params to CreateWindow, and then extra params to initialize `<MainApp>` as the class passed in to the window is directly associated as the window class and contains an instance of one. 
 The window will be initialized first, followed by the class data. Since the class data is initialized after, all events during the creation of the window are currently lost.
+
+# Short term goals
+- [ ] Add PR guidelines so that other users can help with the project
+- [ ] Support other build chains other that Visual Studio MSVC
+- [x] Reduce boilerplate in registering Window Classes
+- [x] Be able to instantiate a Window of a given Window Class
+- [ ] See if it's possible to make a GetMessage() and PeekMessage() wrapper function that makes MSG the return value
+- [ ] Wrap all window related functions inside the MoWin::WindowInterface class
+
+# Long term goals
+- [ ] Stable API
+- [ ] Overall cleaner API compared to raw WIN32
+- [ ] All events are wrapped with member functions that will manipulate LPARAM and WPARAM correctly
+- [ ] Remove any kind of need to include Windows.h when wanting to interface with the library
+- [ ] Support interfacing with the old API for the cases of interfacing with old libraries
