@@ -50,6 +50,12 @@ The window will be initialized first, followed by the class data. Since the clas
 - [x] Be able to instantiate a Window of a given Window Class
 - [ ] See if it's possible to make a GetMessage() and PeekMessage() wrapper function that makes MSG the return value
 - [ ] Wrap all window related functions inside the MoWin::WindowInterface class
+- [ ] Support Win64 Unicode
+
+# Medium term Goals
+- [ ] Support Win64 Multibyte
+- [ ] Support Win32 Multibyte
+- [ ] Support Win32 Unicode
 
 # Long term goals
 - [ ] Stable API
