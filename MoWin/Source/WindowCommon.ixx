@@ -164,6 +164,10 @@ namespace MoWin
         using platform_traits = PlatformTrait;
         using class_type = platform_traits::extended_class_type;
         using string_type = platform_traits::string_type;
+        using event_type = platform_traits::event_type;
+
+    private:
+        using default_class_type = DefaultClass<platform_traits>;
 
     private:
         inline static bool registered = false;
@@ -179,14 +183,14 @@ namespace MoWin
             return registered;
         }
 
-        static LRESULT DefaultProcedure(EventImpl<platform_traits> e)
+        static LRESULT DefaultProcedure(event_type e)
         {
-            return platform_traits::DefaultProcedure(std::forward<EventImpl<platform_traits>>(e));
+            return platform_traits::DefaultProcedure(std::forward<event_type>(e));
         }
 
-        static LRESULT VisitEvent(Ty& self, EventImpl<platform_traits> e)
+        static LRESULT VisitEvent(Ty& self, event_type e)
         {
-            return ::MoWin::VisitEvent(self, e, DefaultProcedure);
+            return ::MoWin::VisitEvent(self, std::forward<event_type>(e), DefaultProcedure);
         }
 
     private:
@@ -205,70 +209,75 @@ namespace MoWin
             if constexpr(StyleDefined<Ty>)
                 windowClass.style = static_cast<UINT>(Ty::Style());
             else
-                windowClass.style = static_cast<UINT>(DefaultClass<platform_traits>::Style());
+                windowClass.style = static_cast<UINT>(default_class_type::Style());
 
             windowClass.lpfnWndProc = &Procedure;
 
             if constexpr(ExtraClassBytesDefined<Ty>)
                 windowClass.cbClsExtra = Ty::ExtraClassBytes();
             else
-                windowClass.cbClsExtra = DefaultClass<platform_traits>::ExtraClassBytes();
+                windowClass.cbClsExtra = default_class_type::ExtraClassBytes();
 
             if constexpr(ExtraWindowBytesDefined<Ty>)
                 windowClass.cbWndExtra = Ty::ExtraWindowBytes();
             else
-                windowClass.cbWndExtra = DefaultClass<platform_traits>::ExtraWindowBytes();
+                windowClass.cbWndExtra = default_class_type::ExtraWindowBytes();
 
             windowClass.hInstance = m_instance;
 
             if constexpr(IconDefined<Ty>)
                 windowClass.hIcon = Ty::Icon(m_instance);
             else
-                windowClass.hIcon = DefaultClass<platform_traits>::Icon(m_instance);
+                windowClass.hIcon = default_class_type::Icon(m_instance);
 
             if constexpr(CursorDefined<Ty>)
                 windowClass.hCursor = Ty::Cursor(m_instance);
             else
-                windowClass.hCursor = DefaultClass<platform_traits>::Cursor(m_instance);
+                windowClass.hCursor = default_class_type::Cursor(m_instance);
 
             if constexpr(BackgroundBrushDefined<Ty>)
                 windowClass.hbrBackground = Ty::BackgroundBrush();
             else
-                windowClass.hbrBackground = DefaultClass<platform_traits>::BackgroundBrush();
+                windowClass.hbrBackground = default_class_type::BackgroundBrush();
 
             if constexpr(MenuDefined<Ty, string_type>)
                 windowClass.lpszMenuName = Ty::MenuName();
             else
-                windowClass.lpszMenuName = DefaultClass<platform_traits>::MenuName();
+                windowClass.lpszMenuName = default_class_type::MenuName();
 
             windowClass.lpszClassName = Ty::ClassName();
 
             if constexpr(SmallIconDefined<Ty>)
                 windowClass.hIconSm = Ty::SmallIcon(m_instance);
             else
-                windowClass.hIconSm = DefaultClass<platform_traits>::SmallIcon(m_instance);
+                windowClass.hIconSm = default_class_type::SmallIcon(m_instance);
 
             registered = platform_traits::RegisterClass(windowClass) != WindowClassAtom(0);
 
             if(!registered)
             {
-                auto f = GetLastError();
-                int i = 0;
-                //Throw
+                throw GetLastError();
             }
         }
 
         static void Unregister()
         {
-            if(!platform_traits::UnregisterClass(Ty::ClassName(), m_instance))
+            try
             {
-                if(GetLastError() == ERROR_CLASS_HAS_WINDOWS)
+                if(!platform_traits::UnregisterClass(Ty::ClassName(), m_instance))
                 {
-                    return;
+                    throw GetLastError();
+                }
+
+                registered = false;
+            }
+            catch(DWORD error)
+            {
+                if(error != ERROR_CLASS_HAS_WINDOWS)
+                {
+                    throw;
                 }
             }
-
-            registered = false;
         }
 
         static LRESULT Procedure(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)

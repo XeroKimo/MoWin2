@@ -21,6 +21,7 @@ namespace MoWin
         constexpr CharacterSet fileCharacterSet = CharacterSet::Unicode;
 
         using FilePlatformTraits = PlatformTraits<filePlatform, fileCharacterSet>;
+        using FileEventType = EventImpl<FilePlatformTraits>;
         using FileStringType = LPCWSTR;
         using FileStandardClassType = WNDCLASSW;
         using FileExtendedClassType = WNDCLASSEXW;
@@ -94,6 +95,7 @@ namespace MoWin
         using extended_class_type = W64U::FileExtendedClassType;
         using window_create_struct_type = W64U::FileWindowCreateStruct;
         using string_type = W64U::FileStringType;
+        using event_type = W64U::FileEventType;
 
         static WindowClassAtom RegisterClass(const standard_class_type& data)
         {
@@ -115,7 +117,7 @@ namespace MoWin
             return DefWindowProcW(hwnd, uMsg, wParam, lParam);
         }
 
-        static LRESULT DefaultProcedure(EventImpl<W64U::FilePlatformTraits> event)
+        static LRESULT DefaultProcedure(event_type event)
         {
             return DefaultProcedure(event.window, static_cast<UINT>(event.type), event.wParam, event.lParam);
         }

@@ -72,14 +72,10 @@ namespace MoWin
         All = 255
     };
 
-    export template<EventType Type, class PlatformTrait>
-        struct TypedEventImpl;
-
     export template<EventCatagoryType Type, class PlatformTrait>
-        struct EventCategoryImpl;
+    struct EventCategoryImpl;
 
-    export template<class PlatformTrait>
-        struct EventBase
+    export struct EventBase
     {
         HWND window;
         EventType type;
@@ -87,8 +83,13 @@ namespace MoWin
         LPARAM lParam;
     };
 
+    export template<EventType Type, class PlatformTrait>
+    struct TypedEventImpl : public EventBase
+    {
+    };
+
     export template<class PlatformTrait>
-        struct EventImpl : public EventBase<PlatformTrait>
+    struct EventImpl : public EventBase
     {
         using platform_traits = PlatformTrait;
         using KeyboardInputNotifications = EventCategoryImpl<EventCatagoryType::Keyboard_Notfications, PlatformTrait>;
@@ -98,6 +99,15 @@ namespace MoWin
 
     template<class Func, class RetVal, class... Args>
     concept invocable_r = std::is_invocable_r_v<RetVal, Func, Args...>;
+
+    template<class Ty>
+    constexpr bool is_event_impl = false;    
+    
+    template<class PlatformTrait>
+    constexpr bool is_event_impl<EventImpl<PlatformTrait>> = true;
+
+    template<class Ty>
+    concept IsEvent = is_event_impl<Ty>;
 
 #pragma region EventTy Categories
 
@@ -252,39 +262,39 @@ namespace MoWin
         invocable_r<Func, LRESULT, TypedEventImpl<EventType::Window_Position_Changing, PlatformTrait>>;
 
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::Activate_App, PlatformTrait> : public EventBase<PlatformTrait>
+    struct TypedEventImpl<EventType::Activate_App, PlatformTrait> : public EventBase
     {
-        using EventBase<PlatformTrait>::window;
-        using EventBase<PlatformTrait>::type;
-        using EventBase<PlatformTrait>::wParam;
-        using EventBase<PlatformTrait>::lParam;
+        using EventBase::window;
+        using EventBase::type;
+        using EventBase::wParam;
+        using EventBase::lParam;
 
         bool Activated() const noexcept { return wParam; }
         DWORD ThreadID() const noexcept { return static_cast<DWORD>(lParam); }
     };
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::Cancel_Mode, PlatformTrait> : public EventBase<PlatformTrait>
+    struct TypedEventImpl<EventType::Cancel_Mode, PlatformTrait> : public EventBase
     {
     };
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::Child_Activate, PlatformTrait> : public EventBase<PlatformTrait>
+    struct TypedEventImpl<EventType::Child_Activate, PlatformTrait> : public EventBase
     {
     };
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::Close, PlatformTrait> : public EventBase<PlatformTrait>
+    struct TypedEventImpl<EventType::Close, PlatformTrait> : public EventBase
     {
     };
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::Compacting, PlatformTrait> : public EventBase<PlatformTrait>
+    struct TypedEventImpl<EventType::Compacting, PlatformTrait> : public EventBase
     {
     };
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::Create, PlatformTrait> : public EventBase<PlatformTrait>
+    struct TypedEventImpl<EventType::Create, PlatformTrait> : public EventBase
     {
-        using EventBase<PlatformTrait>::window;
-        using EventBase<PlatformTrait>::type;
-        using EventBase<PlatformTrait>::wParam;
-        using EventBase<PlatformTrait>::lParam;
+        using EventBase::window;
+        using EventBase::type;
+        using EventBase::wParam;
+        using EventBase::lParam;
 
         auto CreateParams() const noexcept
         {
@@ -292,35 +302,35 @@ namespace MoWin
         }
     };
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::Destroy, PlatformTrait> : public EventBase<PlatformTrait>
+    struct TypedEventImpl<EventType::Destroy, PlatformTrait> : public EventBase
     {
 
     };
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::Enable, PlatformTrait> : public EventBase<PlatformTrait>
+    struct TypedEventImpl<EventType::Enable, PlatformTrait> : public EventBase
     {
-        using EventBase<PlatformTrait>::window;
-        using EventBase<PlatformTrait>::type;
-        using EventBase<PlatformTrait>::wParam;
-        using EventBase<PlatformTrait>::lParam;
+        using EventBase::window;
+        using EventBase::type;
+        using EventBase::wParam;
+        using EventBase::lParam;
 
         bool Enabled() const noexcept { return wParam; }
     };
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::Enter_Size_Move, PlatformTrait> : public EventBase<PlatformTrait>
+    struct TypedEventImpl<EventType::Enter_Size_Move, PlatformTrait> : public EventBase
     {
     };
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::Exit_Size_Move, PlatformTrait> : public EventBase<PlatformTrait>
+    struct TypedEventImpl<EventType::Exit_Size_Move, PlatformTrait> : public EventBase
     {
     };
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::Get_Icon, PlatformTrait> : public EventBase<PlatformTrait>
+    struct TypedEventImpl<EventType::Get_Icon, PlatformTrait> : public EventBase
     {
-        using EventBase<PlatformTrait>::window;
-        using EventBase<PlatformTrait>::type;
-        using EventBase<PlatformTrait>::wParam;
-        using EventBase<PlatformTrait>::lParam;
+        using EventBase::window;
+        using EventBase::type;
+        using EventBase::wParam;
+        using EventBase::lParam;
 
         enum class IconSize
         {
@@ -333,34 +343,34 @@ namespace MoWin
         WORD DPI() const noexcept { return static_cast<WORD>(lParam); }
     };
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::Get_Min_Max_Info, PlatformTrait> : public EventBase<PlatformTrait>
+    struct TypedEventImpl<EventType::Get_Min_Max_Info, PlatformTrait> : public EventBase
     {
-        using EventBase<PlatformTrait>::window;
-        using EventBase<PlatformTrait>::type;
-        using EventBase<PlatformTrait>::wParam;
-        using EventBase<PlatformTrait>::lParam;
+        using EventBase::window;
+        using EventBase::type;
+        using EventBase::wParam;
+        using EventBase::lParam;
 
         MINMAXINFO& MinMaxInfo() const noexcept { return *reinterpret_cast<MINMAXINFO*>(lParam); }
     };
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::Input_Language_Change, PlatformTrait> : public EventBase<PlatformTrait>
+    struct TypedEventImpl<EventType::Input_Language_Change, PlatformTrait> : public EventBase
     {
-        using EventBase<PlatformTrait>::window;
-        using EventBase<PlatformTrait>::type;
-        using EventBase<PlatformTrait>::wParam;
-        using EventBase<PlatformTrait>::lParam;
+        using EventBase::window;
+        using EventBase::type;
+        using EventBase::wParam;
+        using EventBase::lParam;
 
         WPARAM CodePage() const noexcept { return wParam; }
         WORD LanguageIdentifier() const noexcept { return LOWORD(lParam); }
         WORD DeviceHandle() const noexcept { return HIWORD(lParam); }
     };
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::Input_Language_Change_Request, PlatformTrait> : public EventBase<PlatformTrait>
+    struct TypedEventImpl<EventType::Input_Language_Change_Request, PlatformTrait> : public EventBase
     {
-        using EventBase<PlatformTrait>::window;
-        using EventBase<PlatformTrait>::type;
-        using EventBase<PlatformTrait>::wParam;
-        using EventBase<PlatformTrait>::lParam;
+        using EventBase::window;
+        using EventBase::type;
+        using EventBase::wParam;
+        using EventBase::lParam;
 
         bool IsChangeBackward() const noexcept { return wParam & INPUTLANGCHANGE_BACKWARD; }
         bool IsChangeForward() const noexcept { return wParam & INPUTLANGCHANGE_FORWARD; }
@@ -369,57 +379,57 @@ namespace MoWin
         WORD DeviceHandle() const noexcept { return HIWORD(lParam); }
     };
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::Move, PlatformTrait> : public EventBase<PlatformTrait>
+    struct TypedEventImpl<EventType::Move, PlatformTrait> : public EventBase
     {
-        using EventBase<PlatformTrait>::window;
-        using EventBase<PlatformTrait>::type;
-        using EventBase<PlatformTrait>::wParam;
-        using EventBase<PlatformTrait>::lParam;
+        using EventBase::window;
+        using EventBase::type;
+        using EventBase::wParam;
+        using EventBase::lParam;
 
         WORD Left() { return LOWORD(lParam); }
         WORD Top() { return HIWORD(lParam); }
     };
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::Moving, PlatformTrait> : public EventBase<PlatformTrait>
+    struct TypedEventImpl<EventType::Moving, PlatformTrait> : public EventBase
     {
-        using EventBase<PlatformTrait>::window;
-        using EventBase<PlatformTrait>::type;
-        using EventBase<PlatformTrait>::wParam;
-        using EventBase<PlatformTrait>::lParam;
+        using EventBase::window;
+        using EventBase::type;
+        using EventBase::wParam;
+        using EventBase::lParam;
 
         RECT& Rect() const noexcept { return *reinterpret_cast<RECT*>(lParam); }
     };
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::Nonclient_Activate, PlatformTrait> : public EventBase<PlatformTrait>
+    struct TypedEventImpl<EventType::Nonclient_Activate, PlatformTrait> : public EventBase
     {
-        using EventBase<PlatformTrait>::window;
-        using EventBase<PlatformTrait>::type;
-        using EventBase<PlatformTrait>::wParam;
-        using EventBase<PlatformTrait>::lParam;
+        using EventBase::window;
+        using EventBase::type;
+        using EventBase::wParam;
+        using EventBase::lParam;
 
         bool Active() const noexcept { return wParam; }
         bool RedrawWindow() const noexcept { return lParam != -1; }
         //TODO: Figure out the how to interpret the update region of the non-client area using the lParam https://docs.microsoft.com/en-us/windows/win32/winmsg/wm-ncactivate
     };
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::Nonclient_Calculate_Size, PlatformTrait> : public EventBase<PlatformTrait>
+    struct TypedEventImpl<EventType::Nonclient_Calculate_Size, PlatformTrait> : public EventBase
     {
-        using EventBase<PlatformTrait>::window;
-        using EventBase<PlatformTrait>::type;
-        using EventBase<PlatformTrait>::wParam;
-        using EventBase<PlatformTrait>::lParam;
+        using EventBase::window;
+        using EventBase::type;
+        using EventBase::wParam;
+        using EventBase::lParam;
 
         //bool
         NCCALCSIZE_PARAMS& Params() const noexcept { return *reinterpret_cast<NCCALCSIZE_PARAMS*>(lParam); }
         RECT& Rect() const noexcept { return *reinterpret_cast<RECT*>(lParam); }
     };
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::Nonclient_Create, PlatformTrait> : public EventBase<PlatformTrait>
+    struct TypedEventImpl<EventType::Nonclient_Create, PlatformTrait> : public EventBase
     {
-        using EventBase<PlatformTrait>::window;
-        using EventBase<PlatformTrait>::type;
-        using EventBase<PlatformTrait>::wParam;
-        using EventBase<PlatformTrait>::lParam;
+        using EventBase::window;
+        using EventBase::type;
+        using EventBase::wParam;
+        using EventBase::lParam;
 
         auto CreateParams() const noexcept
         {
@@ -427,32 +437,32 @@ namespace MoWin
         }
     };
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::Nonclient_Destroy, PlatformTrait> : public EventBase<PlatformTrait>
+    struct TypedEventImpl<EventType::Nonclient_Destroy, PlatformTrait> : public EventBase
     {
     };
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::Null, PlatformTrait> : public EventBase<PlatformTrait>
+    struct TypedEventImpl<EventType::Null, PlatformTrait> : public EventBase
     {
     };
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::QueryDragIcon, PlatformTrait> : public EventBase<PlatformTrait>
+    struct TypedEventImpl<EventType::QueryDragIcon, PlatformTrait> : public EventBase
     {
     };
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::QueryOpen, PlatformTrait> : public EventBase<PlatformTrait>
+    struct TypedEventImpl<EventType::QueryOpen, PlatformTrait> : public EventBase
     {
     };
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::Quit, PlatformTrait> : public EventBase<PlatformTrait>
+    struct TypedEventImpl<EventType::Quit, PlatformTrait> : public EventBase
     {
     };
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::ShowWindow, PlatformTrait> : public EventBase<PlatformTrait>
+    struct TypedEventImpl<EventType::ShowWindow, PlatformTrait> : public EventBase
     {
-        using EventBase<PlatformTrait>::window;
-        using EventBase<PlatformTrait>::type;
-        using EventBase<PlatformTrait>::wParam;
-        using EventBase<PlatformTrait>::lParam;
+        using EventBase::window;
+        using EventBase::type;
+        using EventBase::wParam;
+        using EventBase::lParam;
 
         bool Shown() const noexcept { return wParam; }
         bool ParentClosing() const noexcept { return lParam == SW_PARENTCLOSING; }
@@ -461,12 +471,12 @@ namespace MoWin
         bool OtherUnzoom() const noexcept { return lParam == SW_OTHERUNZOOM; }
     };
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::Size, PlatformTrait> : public EventBase<PlatformTrait>
+    struct TypedEventImpl<EventType::Size, PlatformTrait> : public EventBase
     {
-        using EventBase<PlatformTrait>::window;
-        using EventBase<PlatformTrait>::type;
-        using EventBase<PlatformTrait>::wParam;
-        using EventBase<PlatformTrait>::lParam;
+        using EventBase::window;
+        using EventBase::type;
+        using EventBase::wParam;
+        using EventBase::lParam;
 
         bool Restored() const noexcept { return wParam == SIZE_RESTORED; }
         bool Minimized() const noexcept { return wParam == SIZE_MINIMIZED; }
@@ -478,12 +488,12 @@ namespace MoWin
         WORD Height() const noexcept { return HIWORD(lParam); }
     };
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::Sizing, PlatformTrait> : public EventBase<PlatformTrait>
+    struct TypedEventImpl<EventType::Sizing, PlatformTrait> : public EventBase
     {
-        using EventBase<PlatformTrait>::window;
-        using EventBase<PlatformTrait>::type;
-        using EventBase<PlatformTrait>::wParam;
-        using EventBase<PlatformTrait>::lParam;
+        using EventBase::window;
+        using EventBase::type;
+        using EventBase::wParam;
+        using EventBase::lParam;
 
         enum class ResizeEdge
         {
@@ -500,52 +510,52 @@ namespace MoWin
         RECT& Rect() const noexcept { return *reinterpret_cast<RECT*>(lParam); }
     };
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::Style_Changed, PlatformTrait> : public EventBase<PlatformTrait>
+    struct TypedEventImpl<EventType::Style_Changed, PlatformTrait> : public EventBase
     {
-        using EventBase<PlatformTrait>::window;
-        using EventBase<PlatformTrait>::type;
-        using EventBase<PlatformTrait>::wParam;
-        using EventBase<PlatformTrait>::lParam;
+        using EventBase::window;
+        using EventBase::type;
+        using EventBase::wParam;
+        using EventBase::lParam;
 
         bool IsExtendedStyle() const noexcept { return wParam == GWL_EXSTYLE; }
         const STYLESTRUCT& Data() const noexcept { return *reinterpret_cast<const STYLESTRUCT*>(lParam); }
     };
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::Style_Changing, PlatformTrait> : public EventBase<PlatformTrait>
+    struct TypedEventImpl<EventType::Style_Changing, PlatformTrait> : public EventBase
     {
-        using EventBase<PlatformTrait>::window;
-        using EventBase<PlatformTrait>::type;
-        using EventBase<PlatformTrait>::wParam;
-        using EventBase<PlatformTrait>::lParam;
+        using EventBase::window;
+        using EventBase::type;
+        using EventBase::wParam;
+        using EventBase::lParam;
 
         bool IsExtendedStyle() const noexcept { return wParam == GWL_EXSTYLE; }
         const STYLESTRUCT& Data() const noexcept { return *reinterpret_cast<const STYLESTRUCT*>(lParam); }
     };
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::Theme_Changed, PlatformTrait> : public EventBase<PlatformTrait>
+    struct TypedEventImpl<EventType::Theme_Changed, PlatformTrait> : public EventBase
     {
     };
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::User_Changed, PlatformTrait> : public EventBase<PlatformTrait>
+    struct TypedEventImpl<EventType::User_Changed, PlatformTrait> : public EventBase
     {
     };
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::Window_Position_Changed, PlatformTrait> : public EventBase<PlatformTrait>
+    struct TypedEventImpl<EventType::Window_Position_Changed, PlatformTrait> : public EventBase
     {
-        using EventBase<PlatformTrait>::window;
-        using EventBase<PlatformTrait>::type;
-        using EventBase<PlatformTrait>::wParam;
-        using EventBase<PlatformTrait>::lParam;
+        using EventBase::window;
+        using EventBase::type;
+        using EventBase::wParam;
+        using EventBase::lParam;
 
         WINDOWPOS& Data() const noexcept { return *reinterpret_cast<WINDOWPOS*>(lParam); }
     };
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::Window_Position_Changing, PlatformTrait> : public EventBase<PlatformTrait>
+    struct TypedEventImpl<EventType::Window_Position_Changing, PlatformTrait> : public EventBase
     {
-        using EventBase<PlatformTrait>::window;
-        using EventBase<PlatformTrait>::type;
-        using EventBase<PlatformTrait>::wParam;
-        using EventBase<PlatformTrait>::lParam;
+        using EventBase::window;
+        using EventBase::type;
+        using EventBase::wParam;
+        using EventBase::lParam;
 
         WINDOWPOS& Data() const noexcept { return *reinterpret_cast<WINDOWPOS*>(lParam); }
     };
@@ -570,12 +580,12 @@ namespace MoWin
         invocable_r<Func, LRESULT, TypedEventImpl<EventType::Unicode_Char, PlatformTrait>>;
 
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::Activate, PlatformTrait> : public EventBase<PlatformTrait>
+    struct TypedEventImpl<EventType::Activate, PlatformTrait> : public EventBase
     {
-        using EventBase<PlatformTrait>::window;
-        using EventBase<PlatformTrait>::type;
-        using EventBase<PlatformTrait>::wParam;
-        using EventBase<PlatformTrait>::lParam;
+        using EventBase::window;
+        using EventBase::type;
+        using EventBase::wParam;
+        using EventBase::lParam;
 
         bool Inactive() const noexcept { return wParam == WA_INACTIVE; }
         bool Active() const noexcept { return wParam == WA_ACTIVE; }
@@ -662,12 +672,12 @@ namespace MoWin
     };
 
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::Application_Command, PlatformTrait> : public EventBase<PlatformTrait>
+    struct TypedEventImpl<EventType::Application_Command, PlatformTrait> : public EventBase
     {
-        using EventBase<PlatformTrait>::window;
-        using EventBase<PlatformTrait>::type;
-        using EventBase<PlatformTrait>::wParam;
-        using EventBase<PlatformTrait>::lParam;
+        using EventBase::window;
+        using EventBase::type;
+        using EventBase::wParam;
+        using EventBase::lParam;
 
         HWND AffectedWindow() const noexcept { return reinterpret_cast<HWND>(wParam); }
         ApplicationCommandType Command() const noexcept { return static_cast<ApplicationCommandType>(GET_APPCOMMAND_LPARAM(lParam)); }
@@ -979,12 +989,12 @@ namespace MoWin
     };
 
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::Char, PlatformTrait> : public EventBase<PlatformTrait>, public KeyMessage<TypedEventImpl<EventType::Char, PlatformTrait>>
+    struct TypedEventImpl<EventType::Char, PlatformTrait> : public EventBase, public KeyMessage<TypedEventImpl<EventType::Char, PlatformTrait>>
     {
-        using EventBase<PlatformTrait>::window;
-        using EventBase<PlatformTrait>::type;
-        using EventBase<PlatformTrait>::wParam;
-        using EventBase<PlatformTrait>::lParam;
+        using EventBase::window;
+        using EventBase::type;
+        using EventBase::wParam;
+        using EventBase::lParam;
 
         auto Key() const noexcept
         {
@@ -1000,12 +1010,12 @@ namespace MoWin
     };
 
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::Dead_Char, PlatformTrait> : public EventBase<PlatformTrait>, public KeyMessage<TypedEventImpl<EventType::Dead_Char, PlatformTrait>>
+    struct TypedEventImpl<EventType::Dead_Char, PlatformTrait> : public EventBase, public KeyMessage<TypedEventImpl<EventType::Dead_Char, PlatformTrait>>
     {
-        using EventBase<PlatformTrait>::window;
-        using EventBase<PlatformTrait>::type;
-        using EventBase<PlatformTrait>::wParam;
-        using EventBase<PlatformTrait>::lParam;
+        using EventBase::window;
+        using EventBase::type;
+        using EventBase::wParam;
+        using EventBase::lParam;
 
         auto Key() const noexcept
         {
@@ -1031,12 +1041,12 @@ namespace MoWin
     DEFINE_ENUM_FLAG_OPERATORS(HotkeyModifier);
 
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::Hotkey, PlatformTrait> : public EventBase<PlatformTrait>
+    struct TypedEventImpl<EventType::Hotkey, PlatformTrait> : public EventBase
     {
-        using EventBase<PlatformTrait>::window;
-        using EventBase<PlatformTrait>::type;
-        using EventBase<PlatformTrait>::wParam;
-        using EventBase<PlatformTrait>::lParam;
+        using EventBase::window;
+        using EventBase::type;
+        using EventBase::wParam;
+        using EventBase::lParam;
 
         WPARAM HotkeyID() const noexcept
         {
@@ -1056,52 +1066,52 @@ namespace MoWin
 
 
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::Key_Down, PlatformTrait> : public EventBase<PlatformTrait>, public VirtualKeyMessage<TypedEventImpl<EventType::Key_Down, PlatformTrait>>
+    struct TypedEventImpl<EventType::Key_Down, PlatformTrait> : public EventBase, public VirtualKeyMessage<TypedEventImpl<EventType::Key_Down, PlatformTrait>>
     {
-        using EventBase<PlatformTrait>::window;
-        using EventBase<PlatformTrait>::type;
-        using EventBase<PlatformTrait>::wParam;
-        using EventBase<PlatformTrait>::lParam;
+        using EventBase::window;
+        using EventBase::type;
+        using EventBase::wParam;
+        using EventBase::lParam;
     };
 
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::Key_Up, PlatformTrait> : public EventBase<PlatformTrait>, public VirtualKeyMessage<TypedEventImpl<EventType::Key_Up, PlatformTrait>>
+    struct TypedEventImpl<EventType::Key_Up, PlatformTrait> : public EventBase, public VirtualKeyMessage<TypedEventImpl<EventType::Key_Up, PlatformTrait>>
     {
-        using EventBase<PlatformTrait>::window;
-        using EventBase<PlatformTrait>::type;
-        using EventBase<PlatformTrait>::wParam;
-        using EventBase<PlatformTrait>::lParam;
+        using EventBase::window;
+        using EventBase::type;
+        using EventBase::wParam;
+        using EventBase::lParam;
     };
 
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::Kill_Focus, PlatformTrait> : public EventBase<PlatformTrait>
+    struct TypedEventImpl<EventType::Kill_Focus, PlatformTrait> : public EventBase
     {
-        using EventBase<PlatformTrait>::window;
-        using EventBase<PlatformTrait>::type;
-        using EventBase<PlatformTrait>::wParam;
-        using EventBase<PlatformTrait>::lParam;
+        using EventBase::window;
+        using EventBase::type;
+        using EventBase::wParam;
+        using EventBase::lParam;
 
         HWND OtherWindow() const noexcept { return reinterpret_cast<HWND>(wParam); }
     };
 
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::Set_Focus, PlatformTrait> : public EventBase<PlatformTrait>
+    struct TypedEventImpl<EventType::Set_Focus, PlatformTrait> : public EventBase
     {
-        using EventBase<PlatformTrait>::window;
-        using EventBase<PlatformTrait>::type;
-        using EventBase<PlatformTrait>::wParam;
-        using EventBase<PlatformTrait>::lParam;
+        using EventBase::window;
+        using EventBase::type;
+        using EventBase::wParam;
+        using EventBase::lParam;
 
         HWND OtherWindow() const noexcept { return reinterpret_cast<HWND>(wParam); }
     };
 
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::System_Dead_Char, PlatformTrait> : public EventBase<PlatformTrait>, public VirtualKeyMessage<TypedEventImpl<EventType::System_Dead_Char, PlatformTrait>>
+    struct TypedEventImpl<EventType::System_Dead_Char, PlatformTrait> : public EventBase, public VirtualKeyMessage<TypedEventImpl<EventType::System_Dead_Char, PlatformTrait>>
     {
-        using EventBase<PlatformTrait>::window;
-        using EventBase<PlatformTrait>::type;
-        using EventBase<PlatformTrait>::wParam;
-        using EventBase<PlatformTrait>::lParam;
+        using EventBase::window;
+        using EventBase::type;
+        using EventBase::wParam;
+        using EventBase::lParam;
 
         auto Key() const noexcept
         {
@@ -1117,30 +1127,30 @@ namespace MoWin
     };
 
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::System_Key_Down, PlatformTrait> : public EventBase<PlatformTrait>, public VirtualKeyMessage<TypedEventImpl<EventType::System_Key_Down, PlatformTrait>>
+    struct TypedEventImpl<EventType::System_Key_Down, PlatformTrait> : public EventBase, public VirtualKeyMessage<TypedEventImpl<EventType::System_Key_Down, PlatformTrait>>
     {
-        using EventBase<PlatformTrait>::window;
-        using EventBase<PlatformTrait>::type;
-        using EventBase<PlatformTrait>::wParam;
-        using EventBase<PlatformTrait>::lParam;
+        using EventBase::window;
+        using EventBase::type;
+        using EventBase::wParam;
+        using EventBase::lParam;
     };
 
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::System_Key_Up, PlatformTrait> : public EventBase<PlatformTrait>, public VirtualKeyMessage<TypedEventImpl<EventType::System_Key_Up, PlatformTrait>>
+    struct TypedEventImpl<EventType::System_Key_Up, PlatformTrait> : public EventBase, public VirtualKeyMessage<TypedEventImpl<EventType::System_Key_Up, PlatformTrait>>
     {
-        using EventBase<PlatformTrait>::window;
-        using EventBase<PlatformTrait>::type;
-        using EventBase<PlatformTrait>::wParam;
-        using EventBase<PlatformTrait>::lParam;
+        using EventBase::window;
+        using EventBase::type;
+        using EventBase::wParam;
+        using EventBase::lParam;
     };
 
     template<class PlatformTrait>
-    struct TypedEventImpl<EventType::Unicode_Char, PlatformTrait> : public EventBase<PlatformTrait>, public KeyMessage<TypedEventImpl<EventType::Unicode_Char, PlatformTrait>>
+    struct TypedEventImpl<EventType::Unicode_Char, PlatformTrait> : public EventBase, public KeyMessage<TypedEventImpl<EventType::Unicode_Char, PlatformTrait>>
     {
-        using EventBase<PlatformTrait>::window;
-        using EventBase<PlatformTrait>::type;
-        using EventBase<PlatformTrait>::wParam;
-        using EventBase<PlatformTrait>::lParam;
+        using EventBase::window;
+        using EventBase::type;
+        using EventBase::wParam;
+        using EventBase::lParam;
 
 
         auto Key() const noexcept
@@ -1158,8 +1168,8 @@ namespace MoWin
     concept HasVisitableEventImpl = VisitableWindowNotifications<Func, PlatformTrait> ||
         VisitableKeyboardNotifications<Func, PlatformTrait>;
 
-    template<EventType Type, class EventTy, class Func, std::invocable<EventTy> DefaultFunc>
-    LRESULT VisitEventImpl(Func&& visitor, EventTy event, DefaultFunc&& defaultFunc)
+    template<EventType Type, IsEvent EventTy, invocable_r<LRESULT, EventTy> Func, invocable_r<LRESULT, EventTy> DefaultFunc>
+    LRESULT VisitEventImpl(Func&& visitor, EventTy&& event, DefaultFunc&& defaultFunc)
     {
         if constexpr(VisitableEventImpl<Func, Type, typename std::remove_reference_t<EventTy>::platform_traits>)
         {
@@ -1171,8 +1181,8 @@ namespace MoWin
         }
     }
 
-    export template<class Func, class EventTy, std::invocable<EventTy> DefaultFunc>
-        LRESULT VisitEvent(Func&& visitor, EventTy event, DefaultFunc&& defaultFunc)
+    export template<IsEvent EventTy, invocable_r<LRESULT, EventTy> Func, invocable_r<LRESULT, EventTy> DefaultFunc>
+    LRESULT VisitEvent(Func&& visitor, EventTy&& event, DefaultFunc&& defaultFunc)
     {
         switch(event.type)
         {
