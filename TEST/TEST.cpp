@@ -73,7 +73,7 @@ struct TESTWindowClass
         break;
         default:
             {
-                return MoWin::WindowClassTraits<TESTWindowClass>::VisitEvent(*this, event);
+                return MoWin::VisitEvent(*this, event);
             }
         }
 

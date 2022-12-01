@@ -188,10 +188,6 @@ namespace MoWin
             return platform_traits::DefaultProcedure(std::forward<event_type>(e));
         }
 
-        static LRESULT VisitEvent(Ty& self, event_type e)
-        {
-            return ::MoWin::VisitEvent(self, std::forward<event_type>(e), DefaultProcedure);
-        }
 
     private:
         static void Register(HINSTANCE instance = nullptr)
@@ -296,19 +292,20 @@ namespace MoWin
                 break;
             }
 
+            EventImpl<platform_traits> event{ hwnd, static_cast<EventType>(uMsg), wParam, lParam };
             if(self == nullptr)
             {
-                return DefaultProcedure(EventImpl<platform_traits>{ hwnd, static_cast<EventType>(uMsg), wParam, lParam });
+                return DefaultProcedure(event);
             }
             else
             {
                 if constexpr(HasProcedureImpl<Ty, platform_traits>)
                 {
-                    return (*self)(EventImpl<platform_traits>{ hwnd, static_cast<EventType>(uMsg), wParam, lParam });
+                    return (*self)(event);
                 }
                 else
                 {
-                    return VisitEvent(*self, EventImpl<platform_traits>{ hwnd, static_cast<EventType>(uMsg), wParam, lParam });
+                    return VisitEvent(*self, event);
                 }
             }
         }

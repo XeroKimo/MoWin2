@@ -106,8 +106,8 @@ namespace MoWin
     template<class PlatformTrait>
     constexpr bool is_event_impl<EventImpl<PlatformTrait>> = true;
 
-    template<class Ty>
-    concept IsEvent = is_event_impl<Ty>;
+    export template<class Ty>
+    concept IsEvent = is_event_impl<std::remove_cvref_t<Ty>>;
 
 #pragma region EventTy Categories
 
@@ -1181,7 +1181,7 @@ namespace MoWin
         }
     }
 
-    export template<IsEvent EventTy, invocable_r<LRESULT, EventTy> Func, invocable_r<LRESULT, EventTy> DefaultFunc>
+    template<IsEvent EventTy, invocable_r<LRESULT, EventTy> Func, invocable_r<LRESULT, EventTy> DefaultFunc>
     LRESULT VisitEvent(Func&& visitor, EventTy&& event, DefaultFunc&& defaultFunc)
     {
         switch(event.type)
@@ -1289,5 +1289,11 @@ namespace MoWin
         }
     }
 
+    export template<IsEvent EventTy, invocable_r<LRESULT, EventTy> Func>
+    LRESULT VisitEvent(Func&& visitor, EventTy&& event)
+    {
+        using platform_traits = std::remove_cvref_t<EventTy>::platform_traits;
+        return VisitEvent(std::forward<Func>(visitor), std::forward<EventTy>(event), [](EventTy&& e) { return platform_traits::DefaultProcedure(std::forward<EventTy>(e)); });
+    }
 #pragma endregion Events
 }
