@@ -66,6 +66,9 @@ namespace MoWin
     {
         ATOM atom;
 
+        bool operator==(const WindowClassAtom&) const = default;
+        bool operator==(ATOM a) const { return atom == a; }
+
         operator ATOM() const { return atom; }
         operator LPCSTR() const { return reinterpret_cast<LPCSTR>(atom); }
         operator LPCWSTR() const { return reinterpret_cast<LPCWSTR>(atom); }
